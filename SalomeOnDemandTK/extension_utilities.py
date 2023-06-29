@@ -48,12 +48,6 @@ FORMAT = '%(levelname)s : %(asctime)s : [%(filename)s:%(funcName)s:%(lineno)s] :
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger()
 
-# SalomeContext sets the logging verbosity level on its own,
-# and we put it here, so it doesn't override the local format above.
-#pylint: disable=wrong-import-position
-import salomeContext
-#pylint: enable=wrong-import-position
-
 SALOME_EXTDIR = '__SALOME_EXT__'
 ARCFILE_EXT = 'salomex'
 BFILE_EXT = 'salomexb'
@@ -609,48 +603,6 @@ def module_from_filename(filename):
     spec.loader.exec_module(module)
 
     return module
-
-
-def set_selext_env(install_dir, salomex_name, context=None):
-    """
-    Finds and run _env.py file for the given extension.
-
-    Args:
-        install_dir - path to directory to check.
-        salomex_name - extension's name.
-        context - SalomeContext object.
-
-    Returns:
-        True if an envpy file was found and run its init func.
-    """
-
-    logger.debug('Set an env for salome extension: %s...', salomex_name)
-
-    # Set the root dir as env variable
-    if not context:
-        context = salomeContext.SalomeContext(None)
-        context.setVariable('SALOME_APPLICATION_DIR', install_dir, overwrite=False)
-
-    # Find env file
-    ext_envpy = find_envpy(install_dir, salomex_name)
-    if not ext_envpy:
-        return False
-
-    # Get a module
-    envpy_module = module_from_filename(ext_envpy)
-    if not envpy_module:
-        return False
-
-    # Set env if we have something to set
-    ext_dir = os.path.join(install_dir, SALOME_EXTDIR)
-    if hasattr(envpy_module, 'init'):
-        envpy_module.init(context, ext_dir)
-        return True
-    else:
-        logger.warning('Env file %s doesnt have init func:!', ext_envpy)
-
-    logger.warning('Setting an env for salome extension %s failed!', salomex_name)
-    return False
 
 
 def get_app_root(levels_up=5):

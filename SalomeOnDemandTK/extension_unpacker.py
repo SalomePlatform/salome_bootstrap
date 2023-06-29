@@ -39,7 +39,7 @@ from traceback import format_exc
 
 from .extension_utilities import logger, \
     DFILE_EXT, ARCFILE_EXT, EXTDEPENDSON_KEY, EXTCOMPONENT_KEY, \
-    isvalid_filename, isvalid_dirname, ext_info_bykey, set_selext_env, \
+    isvalid_filename, isvalid_dirname, ext_info_bykey, \
     get_app_root, check_if_installed, comp_interaction_treat
 
 def unpack_salomex(salome_root, salomex):
@@ -131,12 +131,8 @@ def install_salomex(salomex):
     if not unpack_salomex(app_root, salomex):
         return None
 
-    # Set up an environment
-    # It's not clear at the moment what to do if it fails
-    ext_name, _ = os.path.splitext(os.path.basename(salomex))
-    set_selext_env(app_root, ext_name)
-
     # Get components to activate later
+    ext_name, _ = os.path.splitext(os.path.basename(salomex))
     components = ext_info_bykey(app_root, ext_name, EXTCOMPONENT_KEY)
     return comp_interaction_treat(components) if components else {}
 
