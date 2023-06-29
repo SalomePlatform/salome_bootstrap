@@ -45,7 +45,7 @@ import re
 # Usually logging verbosity is set inside bin/runSalomeCommon.py when salome is starting.
 # Here we do just the same for a case if we call this package stand alone.
 FORMAT = '%(levelname)s : %(asctime)s : [%(filename)s:%(funcName)s:%(lineno)s] : %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+logging.basicConfig(format=FORMAT, level=logging.INFO)
 logger = logging.getLogger()
 
 SALOME_EXTDIR = '__SALOME_EXT__'
@@ -55,6 +55,7 @@ CFILE_EXT = 'salomexc'
 DFILE_EXT = 'salomexd'
 PYFILE_EXT = 'py'
 ENVPYFILE_SUF = '_env.py'
+INSTALLFILE_EXT = 'post_install'
 
 EXTNAME_KEY = 'name'
 EXTDESCR_KEY = 'descr'
@@ -686,6 +687,7 @@ def findReplace(directory, find, replace, filePattern):
             filepath = os.path.join(path, filename)
             with open(filepath) as f:
                 s = f.read()
-            s = s.replace(find, replace)
+            for s_find in re.findall(find,s):
+                s = s.replace(s_find, replace)
             with open(filepath, "w") as f:
                 f.write(s)

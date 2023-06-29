@@ -14,21 +14,20 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 #
-# See https://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-# ===============================================================
-# Files to be installed
-# ===============================================================
+SALOME_CONFIGURE_FILE(SalomeOnDemandTK/__init__.py.in SalomeOnDemandTK/__init__.py)
 
-# These files are part of SalomeOnDemandTK package
-SET(SCRIPTS
-  __init__.py
-  extension_builder.py
-  extension_query.py
-  extension_remover.py
-  extension_unpacker.py
-  extension_utilities.py
-)
+SET(BOOTSTRAP_SCRIPTS
+  ${CMAKE_CURRENT_BINARY_DIR}/SalomeOnDemandTK/__init__.py
+  SalomeOnDemandTK/extension_unpacker.py
+  SalomeOnDemandTK/extension_builder.py
+  SalomeOnDemandTK/extension_query.py
+  SalomeOnDemandTK/extension_remover.py
+  SalomeOnDemandTK/extension_utilities.py
+  )
 
-INSTALL(FILES ${SCRIPTS} DESTINATION  ${SALOME_INSTALL_SCRIPT_SCRIPTS}/SalomeOnDemandTK)
+INSTALL(PROGRAMS salome_pkg 
+        DESTINATION ${SALOME_BOOTSTRAP})
+INSTALL(FILES ${BOOTSTRAP_SCRIPTS} DESTINATION ${SALOME_BOOTSTRAP}/SalomeOnDemandTK)

@@ -38,7 +38,7 @@ import io
 from traceback import format_exc
 
 from .extension_utilities import logger, \
-    BFILE_EXT, DFILE_EXT, PYFILE_EXT, EXTNAME_KEY, ARCFILE_EXT, SALOME_EXTDIR, CFILE_EXT, EXTCOMPONENT_KEY, ITERACTIVE_EXTCOMPONENT_KEY, \
+    INSTALLFILE_EXT, BFILE_EXT, DFILE_EXT, PYFILE_EXT, EXTNAME_KEY, ARCFILE_EXT, SALOME_EXTDIR, CFILE_EXT, EXTCOMPONENT_KEY, ITERACTIVE_EXTCOMPONENT_KEY, \
     isvalid_filename, isvalid_dirname, read_salomexd, read_salomexb, list_files_filter, \
     list_tonewline_str, comp_interaction_treat, value_from_salomexd, override_salomexd
 
@@ -75,7 +75,7 @@ def add_files(ext, files_abs, files_rel):
     logger.handlers[0].terminator = default_terminator
 
 
-def create_salomex(salomexb, salomexd, env_py, top_repository, auto = True):
+def create_salomex(salomexb, salomexd, env_py, top_repository, post_install_script = None, auto = True):
     """
     Makes salome extension archive from provided in salomexb file directories.
 
@@ -84,6 +84,7 @@ def create_salomex(salomexb, salomexd, env_py, top_repository, auto = True):
         salomexd - a path to the <extension>.salomexd file.
         env_py - a path to the <ext>_env.py file.
         top_repository - a root directory for all the paths listed inside salomexb file.
+        post_install_script - a path to the <ext>_post_install
 
     Returns:
         None.
@@ -97,6 +98,10 @@ def create_salomex(salomexb, salomexd, env_py, top_repository, auto = True):
         not isvalid_filename(env_py, PYFILE_EXT) or \
         not isvalid_dirname(top_repository):
         return
+
+    if post_install_script:
+        if not isvalid_filename(post_install_script, INSTALLFILE_EXT):
+            return
 
     # Try to get info from salomexd file
     salome_ext_name = ''
@@ -174,6 +179,8 @@ def create_salomex(salomexb, salomexd, env_py, top_repository, auto = True):
             id = 0
             for f in files_rel:
                 fsplit = f.split('/')
+                if "bin/salome/test" == '/'.join(fsplit[1:4]):
+                    fsplit.insert(4,fsplit[0])
                 del fsplit[0]
                 files_rel[id] = '/'.join(fsplit)
                 id +=1
@@ -193,6 +200,10 @@ def create_salomex(salomexb, salomexd, env_py, top_repository, auto = True):
             # Write the env_py file as is
             logger.debug('Copy the %s file into archive root...', env_py)
             ext.add(env_py, os.path.basename(env_py))
+
+            if post_install_script:
+                logger.debug('Copy the %s file into archive root...', post_install_script)
+                ext.add(post_install_script, os.path.basename(post_install_script))
 
             logger.debug('SALOME extension %s was created.', salome_ext_name)
 

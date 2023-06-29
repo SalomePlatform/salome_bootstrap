@@ -38,9 +38,10 @@ import json
 from traceback import format_exc
 
 from .extension_utilities import logger, \
-    DFILE_EXT, ARCFILE_EXT, EXTDEPENDSON_KEY, EXTCOMPONENT_KEY, \
+    DFILE_EXT, ARCFILE_EXT, EXTDEPENDSON_KEY, EXTCOMPONENT_KEY, INSTALLFILE_EXT, \
     isvalid_filename, isvalid_dirname, ext_info_bykey, \
     get_app_root, check_if_installed, comp_interaction_treat
+from .__init__ import __version__ as salome_version
 
 def unpack_salomex(salome_root, salomex):
     """
@@ -74,13 +75,12 @@ def unpack_salomex(salome_root, salomex):
             # Read a list of dependencies, so let's check if they are present in salome_root
             logger.debug('Try to read %s.%s file...', salome_ext_name, DFILE_EXT)
             salomexd_mem = ext.getmember(salome_ext_name + '.' + DFILE_EXT)
-            salomexd_file = ext.extractfile(salomexd_mem)
+            salomexd_file = ext.extractfile(salomexd_mem).read().decode("utf-8")
             if not salomexd_file:
                 logger.error('Cannot extract %s.%s file!', salome_ext_name, DFILE_EXT)
                 return False
 
-            salomexd_content = json.load(salomexd_file)
-
+            salomexd_content = json.loads(salomexd_file)
             logger.debug('Check dependencies...')
             if EXTDEPENDSON_KEY in salomexd_content and salomexd_content[EXTDEPENDSON_KEY]:
                 depends_on = salomexd_content[EXTDEPENDSON_KEY]
@@ -92,6 +92,14 @@ def unpack_salomex(salome_root, salomex):
                         logger.error('Cannot find %s for a module that extension depends on!',
                             depends_filename)
                         return False
+
+            # Check version of extension. Its version must be the same with salome bootstrap version
+            if salomexd_content["version"] != salome_version:
+                logger.error('Extension version is not compatible \n\
+                        %s version: %s \n\
+                        SALOME version: %s',
+                        salome_ext_name, salomexd_content["version"], salome_version)
+                return False
 
             # Unpack archive in the salome_root
             logger.debug('Extract all the files into %s...', salome_root)
@@ -130,6 +138,18 @@ def install_salomex(salomex):
     # Unpack an archive
     if not unpack_salomex(app_root, salomex):
         return None
+
+    # Execute post-install
+    salome_ext_name, _ = os.path.splitext(os.path.basename(salomex))
+    ext_post_install_script = os.path.join(app_root,salome_ext_name + '.' + INSTALLFILE_EXT)
+
+    if os.path.isfile(ext_post_install_script):
+        os.chmod(ext_post_install_script, 0o755)
+        ret = os.system(ext_post_install_script)
+        if ret != 0:
+            logger.error("Post installation is failed")
+            return 1
+        os.remove(ext_post_install_script)
 
     # Get components to activate later
     ext_name, _ = os.path.splitext(os.path.basename(salomex))
