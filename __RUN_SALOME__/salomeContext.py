@@ -519,7 +519,7 @@ class SalomeContext:
   def _runTests(self, args=None):
     if args is None:
       args = []
-    sys.argv = ['runTests']
+    sys.argv = ['runTests'] + ["--terminal"]
     import setenv
     setenv.main(True)
 
