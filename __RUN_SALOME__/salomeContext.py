@@ -408,7 +408,7 @@ class SalomeContext:
     import runSession
     params, args = runSession.configureSession(args, exe="salome shell")
 
-    sys.argv = ['runSession'] + args + ["--terminal"]
+    sys.argv = ['runSession'] + ["--terminal"] + args
     import setenv
     setenv.main(True)
 
