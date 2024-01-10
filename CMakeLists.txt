@@ -28,7 +28,7 @@ ELSE()
   MESSAGE(FATAL_ERROR "We absolutely need the Salome CMake configuration files, please define CONFIGURATION_ROOT_DIR !")
 ENDIF()
 
-SALOME_SETUP_VERSION(9.10.0)
+SALOME_SETUP_VERSION(9.13.0)
 
 SET( ABS_APPLI_PATH __RUN_SALOME__ CACHE PATH "Install path: Absolute appli path")
 SET( RUN_SALOME_SCRIPTS ${ABS_APPLI_PATH}/bin/salome CACHE PATH
