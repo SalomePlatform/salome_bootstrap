@@ -17,6 +17,7 @@ bootstrap_dir = os.path.join(salome_appli_dir,"__SALOME_BOOTSTRAP__")
 def __initialize():
 
   sys.path[:0] = [ os.path.join(abs_appli_path, "bin/salome") ]
+  sys.path[:0] = [ bootstrap_dir ]
   
   # define folder to store omniorb config (initially in virtual application folder)
   try:
@@ -81,6 +82,16 @@ def main(args):
     context.setVariable(r"APPLI", os.path.join(salome_appli_dir, "salome"), overwrite=True) # KERNEL Launcher
     context.addToPath(os.path.join(abs_appli_path,"bin/salome"))
     context.addToPythonPath(bootstrap_dir)
+
+    # Extension
+    from SalomeOnDemandTK.extension_utilities import  SALOME_EXTDIR
+    ext_root_dir = os.path.join(salome_appli_dir, SALOME_EXTDIR)
+
+    # Seting SALOME extension module Env Var for dynamic library
+    context.addToLdLibraryPath(os.path.join(ext_root_dir, 'lib', 'salome'))
+
+    # Seting SALOME extension prerequis and tools environment for dynamic library
+    context.addToLdLibraryPath(os.path.join(ext_root_dir, 'lib'))
 
     #[manage salome doc command]
     if len(args) >1 and args[0]=='doc':
