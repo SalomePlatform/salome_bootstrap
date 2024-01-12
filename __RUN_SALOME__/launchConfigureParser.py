@@ -958,7 +958,7 @@ def get_env(appname=salomeappname, cfgname=salomecfgname, exeName=None, keepEnvi
     # If user file for the current version is not found the nearest to it is used
     user_config = cmd_opts.resources
     if not user_config:
-        user_config = userFile(appname, cfgname)
+        user_config = defaultUserFile(appname, cfgname)
         if verbose(): print("Configure parser: user configuration file is", user_config)
     if not user_config or not os.path.exists(user_config):
         if verbose(): print("Configure parser: Warning : can not find user configuration file")
