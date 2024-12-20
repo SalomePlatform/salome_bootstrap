@@ -1,8 +1,6 @@
 SET(SALOME_TEST_DRIVER "$ENV{SALOME_APPLICATION_DIR}/__RUN_SALOME__/bin/salome/salome_test_driver.py")
 SET(PYTHON_TEST_DRIVER "$ENV{SALOME_APPLICATION_DIR}/__RUN_SALOME__/bin/salome/python_test_driver.py")
 
-SET(BOOTSTRAP_TEST_LIB "$ENV{SALOME_APPLICATION_DIR}/@BOOTSTRAP_TEST_LIB@")
-
 MACRO(SUBDIRLIST result curdir)
   FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
   SET(dirlist "")

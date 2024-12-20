@@ -82,9 +82,6 @@ def main(args):
     context.setVariable(r"APPLI", os.path.join(salome_appli_dir, "salome"), overwrite=True) # KERNEL Launcher
     context.addToPath(os.path.join(abs_appli_path,"bin/salome"))
     context.addToPythonPath(bootstrap_dir)
-    context.addToPythonPath(os.path.join(abs_appli_path, 'lib', 'salome'))
-    context.addToLdLibraryPath(os.path.join(abs_appli_path, 'lib', 'salome'))
-
 
     # Extension
     from SalomeOnDemandTK.extension_utilities import  SALOME_EXTDIR

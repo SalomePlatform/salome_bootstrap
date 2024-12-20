@@ -17,23 +17,54 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-ADD_SUBDIRECTORY(LaunchingScripts)
-ADD_SUBDIRECTORY(Basics)
-ADD_SUBDIRECTORY(SALOMELocalTrace)
-ADD_SUBDIRECTORY(Exception)
-IF(WRAP_PYTHON)
-  ADD_SUBDIRECTORY(KernelBasics)
+SALOME_CONFIGURE_FILE(VERSION.in VERSION INSTALL ${RUN_SALOME_SCRIPTS})
+SALOME_CONFIGURE_FILE(salomeContextUtils.py.in salomeContextUtils.py)
+SALOME_CONFIGURE_FILE(bashrc .bashrc)
+
+# ===============================================================
+# Files to be installed
+# ===============================================================
+
+# These files are executable scripts
+SET(SCRIPTS
+  addToKillList.py
+  killSalome.py
+  killSalomeWithPort.py
+  launchConfigureParser.py
+  NSparam.py
+  ORBConfigFile.py
+  parseConfigFile.py
+  PortManager.py
+  runSalomeCommon.py
+  runSalome.py
+  runSalomeOnDemand.py
+  runSalomeNoServer.py
+  runSession.py
+  runRemote.py
+  runTests.py
+  ${CMAKE_CURRENT_BINARY_DIR}/salomeContextUtils.py
+  salomeContext.py
+  salome_utils.py
+  searchFreePort.py
+  server.py
+  setenv.py
+  python_test_driver.py
+  # For salome test with session
+  salome_test_driver.py
+  salome_instance.py
+  runSalomeOld.py
+  orbmodule.py
+  nameserver.py
+  )
+
+INSTALL(DIRECTORY test
+        DESTINATION ${RUN_SALOME_SCRIPTS})
+INSTALL(PROGRAMS ${SCRIPTS} 
+        DESTINATION ${RUN_SALOME_SCRIPTS})
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/.bashrc DESTINATION ${ABS_APPLI_PATH})
+
+IF( (NOT DEFINED $ENV{PYTHON_ROOT_DIR}) AND (NOT DEFINED $ENV{PYTHON_INSTALL_DIR}) AND (NOT DEFINED $ENV{PYTHONHOME}) )
+  INSTALL(CODE "
+  EXECUTE_PROCESS(COMMAND ln -s /usr/bin/python3 python WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/${RUN_SALOME_SCRIPTS} )
+  ")
 ENDIF()
-
-SET(SUBDIR_CPPUNIT_BASE
-  Basics/Test
-  SALOMELocalTrace/Test
-)
-FOREACH(_dir ${SUBDIR_CPPUNIT_BASE})
-  ADD_SUBDIRECTORY(${_dir})
-ENDFOREACH()
-
-CONFIGURE_FILE(CTestTestfile.cmake.in CTestTestfile.cmake @ONLY)
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/CTestTestfile.cmake
-        DESTINATION ${BOOTSTRAP_TEST_DIR}
-        RENAME CTestTestfile.cmake)
