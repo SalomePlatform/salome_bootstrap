@@ -1,4 +1,8 @@
-# Copyright (C) 2012-2024  CEA, EDF, OPEN CASCADE
+#  -*- coding: iso-8859-1 -*-
+# Copyright (C) 2007-2024  CEA, EDF, OPEN CASCADE
+#
+# Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+# CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -17,23 +21,20 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-ADD_SUBDIRECTORY(LaunchingScripts)
-ADD_SUBDIRECTORY(Basics)
-ADD_SUBDIRECTORY(SALOMELocalTrace)
-ADD_SUBDIRECTORY(Exception)
-IF(WRAP_PYTHON)
-  ADD_SUBDIRECTORY(KernelBasics)
-ENDIF()
+import sys, signal,string,subprocess
+import subprocess
+import setenv
 
-SET(SUBDIR_CPPUNIT_BASE
-  Basics/Test
-  SALOMELocalTrace/Test
-)
-FOREACH(_dir ${SUBDIR_CPPUNIT_BASE})
-  ADD_SUBDIRECTORY(${_dir})
-ENDFOREACH()
+# get SALOME environment :
+# here we need KERNEL_ROOT_DIR, PATH, LD_LIBRARY_PATH
 
-CONFIGURE_FILE(CTestTestfile.cmake.in CTestTestfile.cmake @ONLY)
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/CTestTestfile.cmake
-        DESTINATION ${BOOTSTRAP_TEST_DIR}
-        RENAME CTestTestfile.cmake)
+args, modules_list, modules_root_dir = setenv.get_config()
+setenv.set_env(args, modules_list, modules_root_dir)
+
+# execute Unit Test
+
+command = ['./TestSALOMELocalTrace']
+ret = subprocess.call(command)
+
+# no process to kill
+exit(ret)

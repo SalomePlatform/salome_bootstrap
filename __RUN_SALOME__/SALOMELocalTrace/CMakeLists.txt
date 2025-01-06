@@ -17,23 +17,32 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-ADD_SUBDIRECTORY(LaunchingScripts)
-ADD_SUBDIRECTORY(Basics)
-ADD_SUBDIRECTORY(SALOMELocalTrace)
-ADD_SUBDIRECTORY(Exception)
-IF(WRAP_PYTHON)
-  ADD_SUBDIRECTORY(KernelBasics)
-ENDIF()
-
-SET(SUBDIR_CPPUNIT_BASE
-  Basics/Test
-  SALOMELocalTrace/Test
+INCLUDE_DIRECTORIES(
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Basics
+  ${PTHREAD_INCLUDE_DIR}
 )
-FOREACH(_dir ${SUBDIR_CPPUNIT_BASE})
-  ADD_SUBDIRECTORY(${_dir})
-ENDFOREACH()
 
-CONFIGURE_FILE(CTestTestfile.cmake.in CTestTestfile.cmake @ONLY)
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/CTestTestfile.cmake
-        DESTINATION ${BOOTSTRAP_TEST_DIR}
-        RENAME CTestTestfile.cmake)
+SET(COMMON_HEADERS
+  utilities.h
+  LocalTraceBufferPool.hxx
+  BaseTraceCollector.hxx
+  SALOME_LocalTrace.hxx
+)
+
+SET(SALOMELocalTrace_SOURCES
+  BaseTraceCollector.cxx
+  BaseTraceCollector.hxx
+  LocalTraceCollector.cxx
+  LocalTraceCollector.hxx
+  FileTraceCollector.cxx
+  FileTraceCollector.hxx
+  LocalTraceBufferPool.cxx
+  LocalTraceBufferPool.hxx
+  SALOME_LocalTrace.hxx
+)
+
+ADD_LIBRARY(SALOMELocalTrace ${SALOMELocalTrace_SOURCES})
+TARGET_LINK_LIBRARIES(SALOMELocalTrace SALOMEBasics SALOMELog ${PTHREAD_LIBRARIES} ${CMAKE_DL_LIBS})
+INSTALL(TARGETS SALOMELocalTrace EXPORT ${PROJECT_NAME}TargetGroup DESTINATION ${BOOTSTRAP_INSTALL_LIBS})
+
+INSTALL(FILES ${COMMON_HEADERS} DESTINATION ${BOOTSTRAP_INSTALL_HEADERS})

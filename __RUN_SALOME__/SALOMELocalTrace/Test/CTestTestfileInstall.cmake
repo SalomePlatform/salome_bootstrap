@@ -1,4 +1,4 @@
-# Copyright (C) 2012-2024  CEA, EDF, OPEN CASCADE
+# Copyright (C) 2015-2024  CEA, EDF
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -17,23 +17,11 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-ADD_SUBDIRECTORY(LaunchingScripts)
-ADD_SUBDIRECTORY(Basics)
-ADD_SUBDIRECTORY(SALOMELocalTrace)
-ADD_SUBDIRECTORY(Exception)
-IF(WRAP_PYTHON)
-  ADD_SUBDIRECTORY(KernelBasics)
+IF(NOT WIN32)
+  SET(TEST_NAME ${COMPONENT_NAME}_LocalTrace)
+  ADD_TEST(${TEST_NAME} ${SALOME_TEST_DRIVER} ${TIMEOUT} TestSALOMELocalTrace.py)
+  SET_TESTS_PROPERTIES(${TEST_NAME} PROPERTIES
+                                    LABELS "${COMPONENT_NAME}"
+                                    ENVIRONMENT "LD_LIBRARY_PATH=${BOOTSTRAP_TEST_LIB}:$ENV{LD_LIBRARY_PATH}"
+                      )
 ENDIF()
-
-SET(SUBDIR_CPPUNIT_BASE
-  Basics/Test
-  SALOMELocalTrace/Test
-)
-FOREACH(_dir ${SUBDIR_CPPUNIT_BASE})
-  ADD_SUBDIRECTORY(${_dir})
-ENDFOREACH()
-
-CONFIGURE_FILE(CTestTestfile.cmake.in CTestTestfile.cmake @ONLY)
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/CTestTestfile.cmake
-        DESTINATION ${BOOTSTRAP_TEST_DIR}
-        RENAME CTestTestfile.cmake)
