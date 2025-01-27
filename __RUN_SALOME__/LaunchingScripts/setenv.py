@@ -91,15 +91,6 @@ def get_config(silent=False, exeName=None, keepEnvironment=True):
     modules_list = []
     if "modules" in args:
         modules_list += [a for a in args["modules"] if a.strip()]
-    # KERNEL must be last in the list to locate it at the first place in PATH
-    if args["gui"] and \
-        ( not os.getenv("GUI_ROOT_DIR") or not os.path.isdir(os.getenv("GUI_ROOT_DIR")) or \
-        not os.getenv("KERNEL_ROOT_DIR") or not os.path.isdir(os.getenv("KERNEL_ROOT_DIR")) ):
-        print("GUI_ROOT_DIR and KERNEL_ROOT_DIR are mandatory pour gui mode")
-        sys.exit(1)
-    else:
-        modules_list[0:2] = ["KERNEL", "GUI"]
-    modules_list.reverse()
 
     modules_root_dir = {}
 

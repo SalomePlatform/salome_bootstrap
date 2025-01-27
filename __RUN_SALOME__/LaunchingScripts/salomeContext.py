@@ -22,7 +22,10 @@ import os
 import sys
 import logging
 import configparser
-
+if sys.version_info[:2] >= (3,12):
+  from configparser import ConfigParser as SafeConfigParser
+else:
+  from configparser import SafeConfigParser
 from parseConfigFile import parseConfigFile
 
 import tempfile
@@ -33,9 +36,10 @@ import platform
 
 from salomeContextUtils import SalomeContextException
 
-def usage():
+def usage(appended_cmd_doc = "", appended_opt_doc = ""):
+  add_in_help = {"appended_cmd_doc":appended_cmd_doc,"appended_opt_doc":appended_opt_doc}
   msg = '''\
-Usage: salome [command] [options] [--config=<file,folder,...>]
+Usage: salome [command] [options] [--config=<file,folder,...>] [--with-env-modules=<env_module1,env_module2,...>]
 
 Commands:
 =========
@@ -58,7 +62,7 @@ Commands:
                     Port numbers must be separated by blank characters.
     killall         Terminate *all* SALOME running SWS instances for current user.
                     Do not start a new one.
-
+%(appended_cmd_doc)s
 If no command is given, default is start.
 
 Command options:
@@ -71,9 +75,15 @@ Command options:
     Initialize SALOME context from a list of context files and/or a list
     of folders containing context files. The list is comma-separated, without
     any blank characters.
+
+--with-env-modules=<env_module1,env_module2,...>
+================================================
+    Initialize SALOME context with the provided additional environment modules.
+    The list is comma-separated, without any blank characters.
+%(appended_opt_doc)s
 '''
 
-  print(msg)
+  print(msg%add_in_help)
 #
 
 """
@@ -111,7 +121,7 @@ class SalomeContext:
       raise SalomeContextException("Module environment not present")
       return
     try:
-      out, err = subprocess.Popen([modulecmd, "python", "load"] + env_modules, stdout=subprocess.PIPE).communicate()
+      out, err = subprocess.Popen([modulecmd, "python", "try-load"] + env_modules, stdout=subprocess.PIPE).communicate()
       exec(out)  # define specific environment variables
     except Exception:
       raise SalomeContextException("Failed to load env modules: %s ..." % ' '.join(env_modules))
@@ -141,6 +151,26 @@ class SalomeContext:
     out, err = proc.communicate()
     return out, err, proc.returncode
   #
+
+  """Append value to PATH environment variable with no duplication"""
+  def addToPathNoDup(self, value):
+    self.addToVariable('PATH', value, dup_check = True)
+
+  """Append value to LD_LIBRARY_PATH environment variable with no duplication"""
+  def addToLdLibraryPathNoDup(self, value):
+    if sys.platform == 'win32':
+      self.addToVariable('PATH', value, dup_check = True)
+    elif  sys.platform == 'darwin':
+      if "LAPACK" in value:
+        self.addToVariable('DYLD_FALLBACK_LIBRARY_PATH', value, dup_check = True)
+      else:
+        self.addToVariable('DYLD_LIBRARY_PATH', value, dup_check = True)
+    else:
+      self.addToVariable('LD_LIBRARY_PATH', value, dup_check = True)
+
+  """Append value to PYTHONPATH environment variable with no duplication"""
+  def addToPythonPathNoDup(self, value):
+    self.addToVariable('PYTHONPATH', value, dup_check = True)
 
   """Append value to PATH environment variable"""
   def addToPath(self, value):
@@ -174,7 +204,7 @@ class SalomeContext:
   def setVariable(self, name, value, overwrite=False):
     env = os.getenv(name, '')
     if env and not overwrite:
-      self.getLogger().error("Environment variable already existing (and not overwritten): %s=%s", name, value)
+      self.getLogger().debug("Environment variable already existing (and not overwritten): %s=%s", name, value)
       return
 
     if env:
@@ -199,8 +229,8 @@ class SalomeContext:
       del os.environ[name]
   #
 
-  """Append value to environment variable"""
-  def addToVariable(self, name, value, separator=os.pathsep):
+  """Prepend value to environment variable"""
+  def addToVariable(self, name, value, separator=os.pathsep, dup_check = False):
     if value == '':
       return
 
@@ -210,7 +240,50 @@ class SalomeContext:
     if env is None:
       os.environ[name] = value
     else:
-      os.environ[name] = value + separator + env
+      if not dup_check:
+        os.environ[name] = value + separator + env
+      else:
+        vallist = os.environ[name].split(separator)
+        if not value in vallist and not value.rstrip('/') in vallist and not value.rstrip('\\') in vallist:
+          os.environ[name] = value + separator + env
+
+  #
+
+  """Append a variable"""
+  def appendVariable(self, name, value, separator=os.pathsep):
+    if value == '':
+      return
+
+    value = os.path.expandvars(value) # expand environment variables
+    env = os.getenv(name, None)
+    if env is None:
+      os.environ[name] = value
+    else:
+      os.environ[name] = env + separator + value
+    return
+
+  """Remove value from environment variable"""
+  def removeFromVariable(self, name, value, separator=os.pathsep):
+    if value == '':
+      return
+
+    value = os.path.expandvars(value) # expand environment variables
+    self.getLogger().debug("Remove from %s: %s", name, value)
+    env = os.getenv(name, None)
+    if env == value:
+      env = ''
+    else:
+      # env = env.removeprefix(value + separator) (Python >= 3.9)
+      str = value + separator
+      if env.startswith(str):
+        env = env[len(str):]
+      # env = env.removesuffix(separator + value) (Python >= 3.9)
+      str = separator + value
+      if env.endswith(str):
+        env = env[:-len(str)]
+      env = env.replace(separator + value + separator, ':')
+
+    os.environ[name] = env
   #
 
   ###################################
@@ -371,13 +444,19 @@ class SalomeContext:
   #
 
   def _sessionless(self, args=None):
+
+    try:
+      import runSalome
+    except:
+      self.getLogger().error("Cannot import runSalome driver, please install SALOME-GUI extension")
+      return 1
+
     if args is None:
       args = []
     sys.argv = ['runSalome'] + args
     import setenv
     setenv.main(True, exeName="salome withsession")
 
-    import runSalome
     runSalome.runSalome()
     return 0
   #
@@ -413,7 +492,7 @@ class SalomeContext:
     import runSession
     params, args = runSession.configureSession(args, exe="salome shell")
 
-    sys.argv = ['runSession'] + ["--terminal"] + args
+    sys.argv = ['runSession'] + args
     import setenv
     setenv.main(True)
 
@@ -421,7 +500,6 @@ class SalomeContext:
   #
   def _on_demand(self, args = None):
     if not args:
-      args=["--foreground=0"]
       command="_sessionless"
     else:
       if args[0] == 'shell':
@@ -429,19 +507,17 @@ class SalomeContext:
         args = args[1:]
       elif args[0] == 'test':
         command = "_runTests"
-        self.getLogger().error("Waiting for implementation")
         #return 1
       else:
-        args[:0]=["--foreground=0"]
         command="_sessionless"
 
     # Keep initial sys.path after updating the environment to avoid the conflict of version python
     # This step is necessary in the case of debian9 salome where we use compiled python(python3.6).
     # If we don't have this step, the xml.sax of python3.6 will be imported in launchConfigureParse.py, which is executed by python3.5.
-    sys_path_init = sys.path.copy()
-    import runSalomeOnDemand
-    runSalomeOnDemand.set_ext_env()
-    sys.path = sys_path_init
+    #sys_path_init = sys.path.copy()
+    #import runSalomeOnDemand
+    #runSalomeOnDemand.set_ext_env()
+    #sys.path = sys_path_init
 
     # Run  
     self._run_function(command, args)
@@ -524,7 +600,7 @@ class SalomeContext:
   def _runTests(self, args=None):
     if args is None:
       args = []
-    sys.argv = ['runTests'] + ["--terminal"]
+    sys.argv = ['runTests']
     import setenv
     setenv.main(True)
 
@@ -533,7 +609,7 @@ class SalomeContext:
   #
 
   def _showSoftwareVersions(self, softwares=None):
-    config = configparser.SafeConfigParser()
+    config = SafeConfigParser()
     absoluteAppliPath = os.getenv('ABSOLUTE_APPLI_PATH')
     filename = os.path.join(absoluteAppliPath, "sha1_collections.txt")
     versions = {}

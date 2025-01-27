@@ -36,9 +36,7 @@ SET(SCRIPTS
   parseConfigFile.py
   PortManager.py
   runSalomeCommon.py
-  runSalome.py
   runSalomeOnDemand.py
-  runSalomeNoServer.py
   runSession.py
   runRemote.py
   runTests.py
@@ -49,12 +47,8 @@ SET(SCRIPTS
   server.py
   setenv.py
   python_test_driver.py
-  # For salome test with session
-  salome_test_driver.py
-  salome_instance.py
-  runSalomeOld.py
-  orbmodule.py
-  nameserver.py
+  ## For salome test with session
+  #salome_test_driver.py
   )
 
 CONFIGURE_FILE(test/CTestTestfile.cmake.in test/CTestTestfile.cmake @ONLY)

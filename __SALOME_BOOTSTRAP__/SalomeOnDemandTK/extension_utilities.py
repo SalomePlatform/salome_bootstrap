@@ -48,6 +48,9 @@ FORMAT = '%(levelname)s : %(asctime)s : [%(filename)s:%(funcName)s:%(lineno)s] :
 logging.basicConfig(format=FORMAT, level=logging.INFO)
 logger = logging.getLogger()
 
+# version of extension metadata model
+ModelVersion = "1.0.0"
+
 SALOME_EXTDIR = '__SALOME_EXT__'
 ARCFILE_EXT = 'salomex'
 BFILE_EXT = 'salomexb'
@@ -58,55 +61,20 @@ ENVPYFILE_SUF = '_env.py'
 INSTALLFILE_EXT = 'post_install'
 
 EXTNAME_KEY = 'name'
+EXTVERSION_KEY = 'version'
 EXTDESCR_KEY = 'descr'
 EXTDEPENDSON_KEY = 'depends_on'
 EXTAUTHOR_KEY = 'author'
-EXTCOMPONENT_KEY = 'components'
-DKEY_LIST = [ EXTNAME_KEY, EXTDESCR_KEY, EXTDEPENDSON_KEY, EXTAUTHOR_KEY, EXTCOMPONENT_KEY ]
+EXTCOMPONENT_KEY = 'ext_components'
+EXTISGUI_KEY = 'salomegui'
+EXTSMOGULENAME_KEY = 'salomemodule_name'
+License_KEY = 'License'
+MODELVERSION_KEY = 'ModelVersion'
+
+EXTDEPNAME_KEY = 'name'
+EXTDEPVERSION_KEY = 'version'
+DKEY_LIST = [ EXTNAME_KEY, EXTDESCR_KEY, EXTDEPENDSON_KEY, EXTAUTHOR_KEY, EXTCOMPONENT_KEY, EXTSMOGULENAME_KEY, EXTISGUI_KEY ]
 ITERACTIVE_EXTCOMPONENT_KEY = 'salome_interactive'
-
-
-def create_salomexd(name, descr='', depends_on=None, author='', components=None):
-    """
-    Create a basic salomexd file from provided args.
-    Current version is a json file with function args as the keys.
-
-    Args:
-        name - the name of the corresponding salome extension.
-        depends_on - list of the modules that current extension depends on.
-        author - an author of the extension.
-        components - the names of the modules those current extension was built from.
-
-    Returns:
-        None
-    """
-
-    logger.debug('Create salomexd file...')
-
-    if depends_on is None:
-        depends_on = []
-
-    if components is None:
-        components = []
-
-    json_string = json.dumps(
-        {
-            EXTNAME_KEY: name,
-            EXTDESCR_KEY: descr,
-            EXTDEPENDSON_KEY: depends_on,
-            EXTAUTHOR_KEY: author,
-            EXTCOMPONENT_KEY: components
-        },
-        indent=4
-    )
-
-    try:
-        with open(name + '.' + DFILE_EXT, "w", encoding="utf-8") as file:
-            file.write(json_string)
-
-    except OSError:
-        logger.error(format_exc())
-
 
 def read_salomexd(file_path):
     """
@@ -179,9 +147,22 @@ def value_from_salomexd(file_path, key):
         logger.debug('Key: %s, value: %s', key, file_content[key])
         return file_content[key]
 
-    logger.warning('Cannot get a value for key %s in salomexd file %s', key, file_path)
+    logger.debug('Cannot get a value for key %s in salomexd file %s', key, file_path)
     return None
 
+def get_module_name(salome_root, salomex_name):
+    """
+    Get salome module name from salomexd. If salome module name is not declared, the extension name will be given
+    Normally, the extension name declared in the salomexd is the same of extension config files name (salomexd, salomexb, _env.py)
+
+    Args:
+        install_dir - directory where the given extension is installed.
+        salomex_name - the given extension's name.
+    """
+    module_name = ext_info_bykey(salome_root, salomex_name, EXTSMOGULENAME_KEY)
+    if not module_name:
+        logger.debug(f'salomemodule_name is not declared in {salomex_name}.salomexd .')
+    return module_name
 
 def ext_info_bykey(salome_root, salomex_name, key):
     """
@@ -203,32 +184,6 @@ def ext_info_bykey(salome_root, salomex_name, key):
     return None
 
 
-def create_salomexb(name, included):
-    """
-    Create a salomexb file from a list of included file names.
-    For example:
-    */*.py
-    doc/*.html
-    doc/*.jp
-
-    Args:
-        name - the name of the corresponding salome extension.
-        included - list of the directories those must be included inside a salomex.
-
-    Returns:
-        None
-    """
-
-    logger.debug('Create salomexb file...')
-
-    try:
-        with open(name + '.' + BFILE_EXT, "w", encoding="utf-8") as file:
-            file.write('\n'.join(included[0:]))
-
-    except OSError:
-        logger.error(format_exc())
-
-
 def read_salomexb(file_path):
     """
     Returns a content af a salomexb file as a list of strings.
@@ -244,7 +199,6 @@ def read_salomexb(file_path):
     """
 
     logger.debug('Read salomexb file %s', file_path)
-
     try:
         with open(file_path, 'r', encoding='UTF-8') as file:
             return [line.rstrip() for line in file]
@@ -691,3 +645,17 @@ def findReplace(directory, find, replace, filePattern):
                 s = s.replace(s_find, replace)
             with open(filepath, "w") as f:
                 f.write(s)
+
+def get_OS_ID():
+    """
+    Get identification of operating system
+
+    return: on Linux: <id>_<version_number> (Ex: debian_12)
+            on Windows: windows
+    """
+    os_name = sys.platform
+    if os_name  == "linux":
+        import distro
+        return distro.id() + "_" + distro.version()
+    else:
+        return os_name

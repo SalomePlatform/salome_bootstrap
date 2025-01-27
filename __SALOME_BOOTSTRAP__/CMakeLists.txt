@@ -22,7 +22,6 @@ SALOME_CONFIGURE_FILE(SalomeOnDemandTK/__init__.py.in SalomeOnDemandTK/__init__.
 SET(BOOTSTRAP_SCRIPTS
   ${CMAKE_CURRENT_BINARY_DIR}/SalomeOnDemandTK/__init__.py
   SalomeOnDemandTK/extension_unpacker.py
-  SalomeOnDemandTK/extension_builder.py
   SalomeOnDemandTK/extension_query.py
   SalomeOnDemandTK/extension_remover.py
   SalomeOnDemandTK/extension_utilities.py

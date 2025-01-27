@@ -94,7 +94,17 @@ def main(args):
     context.addToLdLibraryPath(os.path.join(ext_root_dir, 'lib', 'salome'))
 
     # Seting SALOME extension prerequis and tools environment for dynamic library
-    context.addToLdLibraryPath(os.path.join(ext_root_dir, 'lib'))
+    BINDIR = os.path.join(ext_root_dir, 'bin')
+    LIBDIR = os.path.join(ext_root_dir, 'lib')
+    INCLUDEDIR = os.path.join(ext_root_dir, 'include')
+
+    context.addToPath(BINDIR)
+    context.addToLdLibraryPath(LIBDIR)
+    context.addToPythonPath(BINDIR)
+    context.addToPythonPath(LIBDIR)
+
+    import runSalomeOnDemand
+    runSalomeOnDemand.set_ext_env()
 
     #[manage salome doc command]
     if len(args) >1 and args[0]=='doc':
@@ -112,7 +122,8 @@ def main(args):
  
 
 if __name__ == "__main__":
-  args = ["on_demand"]
-  args[1:]= sys.argv[1:]
+  #args = ["on_demand"]
+  #args[1:]= sys.argv[1:]
+  args = sys.argv[1:]
   main(args)
 #

@@ -252,9 +252,10 @@ def dependency_tree(directory):
 
         if EXTDEPENDSON_KEY in salomexd_content:
             depends_on = salomexd_content[EXTDEPENDSON_KEY]
-            logger.debug('List of dependencies: %s', depends_on)
+            depends_on_no_version = [ext["name"] for ext in depends_on ]
+            logger.debug('List of dependencies: %s', depends_on_no_version)
 
-            tree[ext_name] = depends_on
+            tree[ext_name] = depends_on_no_version
 
     logger.debug('Dependency tree: %s', tree)
     return tree
