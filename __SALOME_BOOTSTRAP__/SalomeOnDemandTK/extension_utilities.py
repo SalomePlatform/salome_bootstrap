@@ -430,9 +430,10 @@ def list_dependants(install_dir, salomex_name):
 
         if EXTDEPENDSON_KEY in salomexd_content and salomexd_content[EXTDEPENDSON_KEY]:
             depends_on = salomexd_content[EXTDEPENDSON_KEY]
-            logger.debug('List of dependencies: %s', depends_on)
+            depends_on_no_version = [ext["name"] for ext in depends_on ]
+            logger.debug('List of dependencies: %s', depends_on_no_version)
 
-            if salomex_name in depends_on:
+            if salomex_name in depends_on_no_version:
                 dependants.append(dependant_name)
 
     if len(dependants) > 0:
