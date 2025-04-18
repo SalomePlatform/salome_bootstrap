@@ -16,7 +16,7 @@
 #
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
-CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 PROJECT(SalomeBootstrap)
 # upper case
 STRING(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UC)
