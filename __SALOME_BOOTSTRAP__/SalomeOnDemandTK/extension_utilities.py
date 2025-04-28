@@ -660,3 +660,24 @@ def get_OS_ID():
         return distro.id() + "_" + distro.version()
     else:
         return os_name
+
+def get_salome_version():
+    """
+    Get SALOME APP version from SALOME_APPLICATION_DIR/__RUN_SALOME__/bin/salome/VERSION
+    """
+    salome_app_dir = os.getenv( "SALOME_APPLICATION_DIR" )
+    if salome_app_dir:
+        try:
+            filename = os.path.join(salome_app_dir, "__RUN_SALOME__","bin","salome","VERSION")
+            f = open( filename )
+            data = f.readlines()
+            f.close()
+            for l in data:
+                if l.strip().startswith("#") or ":" not in l: continue
+                key = ":".join( l.split( ":" )[ :-1 ] ).strip()
+                val = l.split( ":" )[ -1 ].strip()
+                if "salomeapp" in key.lower():
+                    return val
+        except Exception:
+            pass
+    return ""
