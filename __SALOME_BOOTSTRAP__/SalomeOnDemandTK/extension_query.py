@@ -260,6 +260,53 @@ def dependency_tree(directory):
     logger.debug('Dependency tree: %s', tree)
     return tree
 
+def ext_dependency_tree( salomexd_files_dir, ext_name ):
+    r"""
+    Create a dependency tree for one salome extensions
+    Data is retrieved from the directory containning all of salomexd files.
+    ext_name.salomexd must be present dans salomexd files directory
+
+    Args:
+        salomexd_files_dir - salomexd files directory
+        ext_name - the extension name
+
+    Returns:
+        A dictionary like that for extensions A, B, C, D and E:
+          A
+         /|\
+        / B D
+        \/ \/
+        C   E
+
+        { 'A': ['B', 'C', 'D'], 'B': ['C', 'E'], 'C': [], 'D': ['E'], 'E': [] }.
+    """
+
+    tree = {}
+    ext_salomexd_file = os.path.join(salomexd_files_dir,ext_name + "." + DFILE_EXT)
+    salomexd_content = read_salomexd(ext_salomexd_file)
+    depends_on = salomexd_content[EXTDEPENDSON_KEY]
+    depends_on_no_version = [ext["name"] for ext in depends_on ]
+    tree[ext_name] = depends_on_no_version
+    if tree[ext_name]:
+        for ext_dep_name in tree[ext_name]:
+            tree.update(ext_dependency_tree(salomexd_files_dir, ext_dep_name))
+    return tree
+
+def get_depends_on_list( ext_list ):
+    """
+    Get an orderd list of depends_on of an extensions list from *.salomexd
+    This list is used to automate the installation of an extension and its prerequis
+    """
+
+    salomexd_files_dir = os.environ["SALOMEXD_FILES_DIR"]
+    if os.path.isdir(salomexd_files_dir):
+        tree = {}
+        for module_name in ext_list:
+            tree.update(ext_dependency_tree(salomexd_files_dir,module_name))
+        return ext_by_dependants(tree)
+    else:
+        logger.error(f"salomexd files directory \"{salomexd_files_dir}\" not found!!")
+        return None
 
 def ext_info_dict(directory):
     r"""
