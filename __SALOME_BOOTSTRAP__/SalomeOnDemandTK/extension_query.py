@@ -292,13 +292,13 @@ def ext_dependency_tree( salomexd_files_dir, ext_name ):
             tree.update(ext_dependency_tree(salomexd_files_dir, ext_dep_name))
     return tree
 
-def get_depends_on_list( ext_list ):
+def get_depends_on_list( ext_list, salomexd_files_dir = ""):
     """
     Get an orderd list of depends_on of an extensions list from *.salomexd
     This list is used to automate the installation of an extension and its prerequis
     """
-
-    salomexd_files_dir = os.environ["SALOMEXD_FILES_DIR"]
+    if not salomexd_files_dir:
+        salomexd_files_dir = os.getenv("SALOMEXD_FILES_DIR") if os.getenv("SALOMEXD_FILES_DIR") else ""
     if os.path.isdir(salomexd_files_dir):
         tree = {}
         for module_name in ext_list:
