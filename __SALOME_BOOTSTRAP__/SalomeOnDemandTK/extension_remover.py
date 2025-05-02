@@ -123,7 +123,7 @@ def remove_bylist(root_dir, salomexc):
 
     return True
 
-def remove_salomex(install_dir, salomex_name):
+def remove_salomex(install_dir, salomex_name, force = False):
     """
     Remove a salome extension from SALOME install root.
 
@@ -150,10 +150,14 @@ def remove_salomex(install_dir, salomex_name):
     # Check if we cannot remove an extension because of dependencies
     dependants = list_dependants(install_dir, salomex_name)
     if len(dependants) > 0:
-        logger.error('Cannot remove an extension %s because followed extensions depend on it: %s! '
-            'Going to exit from extension removing process.',
-            salomex_name, dependants)
-        return None
+        if not force:
+            logger.error('Cannot remove an extension %s because followed extensions depend on it: %s! '
+                'Going to exit from extension removing process.',
+                salomex_name, dependants)
+            return None
+        else:
+            logger.debug('Forcibly removing this extension %s may break the following dependent applications: %s!',
+                salomex_name, dependants)
 
     # Try to remove all the files listed in the control file
     if not remove_bylist(os.path.join(install_dir, SALOME_EXTDIR), salomexc):

@@ -39,7 +39,7 @@ import sys
 from traceback import format_exc
 
 from .extension_utilities import logger, \
-    SALOME_EXTDIR, DFILE_EXT, EXTDEPENDSON_KEY, EXTDESCR_KEY, EXTAUTHOR_KEY, EXTCOMPONENT_KEY, \
+    SALOME_EXTDIR, DFILE_EXT, EXTDEPENDSON_KEY, EXTDESCR_KEY, EXTAUTHOR_KEY, EXTCOMPONENT_KEY, DFILES_DIR, \
     isvalid_dirname, find_salomexc, list_files_ext, read_salomexd, comp_interaction_treat
 
 
@@ -238,11 +238,12 @@ def dependency_tree(directory):
         { 'A': ['B', 'C', 'D'], 'B': ['C', 'E'], 'C': [], 'D': ['E'], 'E': [] }.
     """
 
-    logger.debug('Build dependency tree for extensions in %s', directory)
+    salomexd_dir = os.path.join(directory,DFILES_DIR)
+    logger.debug('Build dependency tree for extensions in %s', salomexd_dir)
 
     tree = {}
-    salomexd_files = list_files_ext(directory, DFILE_EXT)
-    logger.debug('There are %s extensions in %s', len(salomexd_files), directory)
+    salomexd_files = list_files_ext(salomexd_dir, DFILE_EXT)
+    logger.debug('There are %s extensions in %s', len(salomexd_files), salomexd_dir)
 
     for salomexd_file in salomexd_files:
         ext_name, _ = os.path.splitext(os.path.basename(salomexd_file))
@@ -319,11 +320,12 @@ def ext_info_dict(directory):
         A dictionary {name: [descr, author, components, size]}.
     """
 
-    logger.debug('Build info dictionary for extensions in %s', directory)
+    salomexd_dir = os.path.join(directory, DFILES_DIR)
+    logger.debug('Build info dictionary for extensions in %s', salomexd_dir)
 
     ext_info = {}
-    salomexd_files = list_files_ext(directory, DFILE_EXT)
-    logger.debug('There are %s extensions in %s', len(salomexd_files), directory)
+    salomexd_files = list_files_ext(salomexd_dir, DFILE_EXT)
+    logger.debug('There are %s extensions in %s', len(salomexd_files), salomexd_dir)
 
     for salomexd_file in salomexd_files:
         # Collect size info
@@ -433,10 +435,11 @@ def ext_by_name(directory):
     """
 
     logger.debug('directory: %s', directory)
+    salomexd_dir = os.path.join(directory, DFILES_DIR)
 
     # Get ext files
-    salomexd_files = list_files_ext(directory, DFILE_EXT)
-    logger.debug('There are %s extensions in %s', len(salomexd_files), directory)
+    salomexd_files = list_files_ext(salomexd_dir, DFILE_EXT)
+    logger.debug('There are %s extensions in %s', len(salomexd_files), salomexd_dir)
 
     # Get ext names
     res_names = []

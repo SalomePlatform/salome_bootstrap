@@ -37,8 +37,10 @@ import sys
 import json
 from traceback import format_exc
 
+import SalomeOnDemandTK.extension_remover as extension_remover
+
 from .extension_utilities import logger, \
-    DFILE_EXT, ARCFILE_EXT, EXTDEPENDSON_KEY, INSTALLFILE_EXT, EXTVERSION_KEY, \
+    DFILE_EXT, ARCFILE_EXT, EXTDEPENDSON_KEY, INSTALLFILE_EXT, EXTVERSION_KEY, DFILES_DIR, \
     isvalid_filename, isvalid_dirname, ext_info_bykey, \
     get_app_root, check_if_installed, comp_interaction_treat, get_module_name, \
     EXTISGUI_KEY, MODELVERSION_KEY, value_from_salomexd, EXTDEPNAME_KEY, EXTDEPVERSION_KEY, \
@@ -48,7 +50,7 @@ class SalomeBootStrapInstallerException(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-def unpack_salomex(salome_root, salomex):
+def unpack_salomex(salome_root, salomex, remove_old_pkg):
     """
     Unpack a given salome extension archive into SALOME install root.
 
@@ -67,22 +69,31 @@ def unpack_salomex(salome_root, salomex):
         not isvalid_filename(salomex, ARCFILE_EXT):
         raise SalomeBootStrapInstallerException("Provided filename is not valid")
 
-    # Check if the given extension is already installed
-    salome_ext_name, _ = os.path.splitext(os.path.basename(salomex))
-    _, salomexc = check_if_installed(salome_root, salome_ext_name)
-    if salomexc:
-        logger.debug('To reinstall an extension you need to remove it first!')
-        return False
-
     try:
         with tarfile.open(salomex) as ext:
 
             # Read a list of dependencies, so let's check if they are present in salome_root
-            logger.debug('Try to read %s.%s file...', salome_ext_name, DFILE_EXT)
-            salomexd_mem = ext.getmember(salome_ext_name + '.' + DFILE_EXT)
-            salomexd_file = ext.extractfile(salomexd_mem).read().decode("utf-8")
+            ext_file_name, _ = os.path.splitext(os.path.basename(salomex))
+            logger.debug('Try to read %s \'s %s file...', ext_file_name, DFILE_EXT)
+            # Get salomexd file
+            for member in ext.getmembers():
+                if member.name.endswith(DFILE_EXT):
+                    salomexd_file_name = os.path.basename(member.name)
+                    salomexd_file = ext.extractfile(member).read().decode("utf-8")
+                    break
             if not salomexd_file:
                 raise SalomeBootStrapInstallerException('Cannot extract %s.%s file!', salome_ext_name, DFILE_EXT)
+
+            # Check if the given extension is already installed
+            salome_ext_name, _ = os.path.splitext(salomexd_file_name)
+            _, salomexc = check_if_installed(salome_root, salome_ext_name)
+            if salomexc:
+                if remove_old_pkg:
+                    logger.debug('%s is already installed on your application. It will be removed forcibly first to be able to reinstalled', salome_ext_name)
+                    extension_remover.remove_salomex(salome_root, salome_ext_name, True)
+                else:
+                    logger.error('%s is already installed on your application. To reinstall an extension you need to remove it first!', salome_ext_name)
+                    return None
 
             salomexd_content = json.loads(salomexd_file)
             logger.debug('Check dependencies...')
@@ -91,7 +102,7 @@ def unpack_salomex(salome_root, salomex):
 
                 # Check every module if it's in the salome_root
                 for depends in depends_on:
-                    depends_filename = os.path.join(salome_root, depends[EXTDEPNAME_KEY] + '.' + DFILE_EXT)
+                    depends_filename = os.path.join(salome_root, DFILES_DIR, depends[EXTDEPNAME_KEY] + '.' + DFILE_EXT)
                     if not os.path.isfile(depends_filename):
                         logger.error('Cannot find %s for a module that extension depends on!',
                             depends_filename)
@@ -119,12 +130,12 @@ def unpack_salomex(salome_root, salomex):
 
     except (OSError, KeyError):
         logger.error(format_exc())
-        return False
+        return None
 
-    return True
+    return salome_ext_name
 
 
-def install_salomex(salomex):
+def install_salomex(salomex, remove_old_pkg = False):
     """
     Install a given salome extension into SALOME_APPLICATION_DIR.
 
@@ -146,11 +157,11 @@ def install_salomex(salomex):
         app_root = get_app_root()
 
     # Unpack an archive
-    if not unpack_salomex(app_root, salomex):
+    salome_ext_name = unpack_salomex(app_root, salomex, remove_old_pkg)
+    if not salome_ext_name:
         return None
 
     # Execute post-install
-    salome_ext_name, _ = os.path.splitext(os.path.basename(salomex))
     ext_post_install_script = os.path.join(app_root,salome_ext_name + '.' + INSTALLFILE_EXT)
 
     if os.path.isfile(ext_post_install_script):

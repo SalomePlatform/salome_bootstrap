@@ -45,11 +45,21 @@ import re
 # Usually logging verbosity is set inside bin/runSalomeCommon.py when salome is starting.
 # Here we do just the same for a case if we call this package stand alone.
 FORMAT = '%(levelname)s : %(asctime)s : [%(filename)s:%(funcName)s:%(lineno)s] : %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.INFO)
+SOD_DEBUG=os.getenv("SOD_DEBUG")
+if SOD_DEBUG:
+    logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+else:
+    logging.basicConfig(format=FORMAT, level=logging.INFO)
+
 logger = logging.getLogger()
 
 # version of extension metadata model
 ModelVersion = "1.0.0"
+
+EXT_MNG_DIR = "ext_mng"
+DFILES_DIR = os.path.join(EXT_MNG_DIR,"metadata")
+CFILES_DIR = os.path.join(EXT_MNG_DIR,"control_files")
+ENVFILES_DIR = os.path.join(EXT_MNG_DIR,"env")
 
 SALOME_EXTDIR = '__SALOME_EXT__'
 ARCFILE_EXT = 'salomex'
@@ -416,7 +426,7 @@ def list_dependants(install_dir, salomex_name):
 
     logger.debug('Check if there are other extensions that depends on %s...', salomex_name)
     dependants = []
-    salomexd_files = list_files_ext(install_dir, DFILE_EXT)
+    salomexd_files = list_files_ext(os.path.join(install_dir,DFILES_DIR), DFILE_EXT)
 
     for salomexd_file in salomexd_files:
         dependant_name, _ = os.path.splitext(os.path.basename(salomexd_file))
@@ -491,7 +501,7 @@ def find_salomexd(install_dir, salomex_name):
         Abs path if the file exist, otherwise None.
     """
 
-    return find_file(install_dir, salomex_name + '.' + DFILE_EXT)
+    return find_file(install_dir, os.path.join(DFILES_DIR, salomex_name + '.' + DFILE_EXT))
 
 
 def find_salomexc(install_dir, salomex_name):
@@ -506,7 +516,7 @@ def find_salomexc(install_dir, salomex_name):
         Abs path if the file exist, otherwise None.
     """
 
-    return find_file(install_dir, salomex_name + '.' + CFILE_EXT)
+    return find_file(install_dir, os.path.join(CFILES_DIR, salomex_name + '.' + CFILE_EXT))
 
 
 def find_envpy(install_dir, salomex_name):
@@ -521,7 +531,7 @@ def find_envpy(install_dir, salomex_name):
         Abs path if the file exist, otherwise None.
     """
 
-    return find_file(install_dir, salomex_name + ENVPYFILE_SUF)
+    return find_file(install_dir, os.path.join(ENVFILES_DIR, salomex_name + ENVPYFILE_SUF))
 
 
 def module_from_filename(filename):
