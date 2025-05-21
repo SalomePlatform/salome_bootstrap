@@ -39,7 +39,7 @@ import sys
 from traceback import format_exc
 
 from .extension_utilities import logger, \
-    SALOME_EXTDIR, DFILE_EXT, EXTDEPENDSON_KEY, EXTDESCR_KEY, EXTAUTHOR_KEY, EXTCOMPONENT_KEY, DFILES_DIR, \
+    SALOME_EXTDIR, DFILE_EXT, EXTDEPENDSON_KEY, EXTDESCR_KEY, EXTAUTHOR_KEY, EXTCOMPONENT_KEY, DFILES_DIR, EXTVERSION_KEY, \
     isvalid_dirname, find_salomexc, list_files_ext, read_salomexd, comp_interaction_treat
 
 
@@ -497,6 +497,76 @@ def ext_canremove_flags(directory):
 
     return res_dict
 
+def get_ext_version(ext_name, root_dir = os.getenv("SALOME_APPLICATION_DIR")):
+    r"""
+    Get version de l'extension from salomexd
+
+    Args:
+        ext_name - the extension name
+
+    Returns:
+        version - string
+    """
+
+    if not root_dir or not os.path.isdir(root_dir):
+        logger.error(f'Installation directory {root_dir} is not found')
+        return None
+
+    salomexd_dir = os.path.join(root_dir, DFILES_DIR)
+    ext_salomexd_file = os.path.join(salomexd_dir,ext_name + "." + DFILE_EXT)
+    salomexd_content = read_salomexd(ext_salomexd_file)
+    return salomexd_content[EXTVERSION_KEY]
+
+def get_ext_version_major( ext_name ):
+    r"""
+    Get version de l'extension from salomexd
+
+    Args:
+        ext_name - the extension name
+
+    Returns:
+        version major - string
+    """
+    ver = get_ext_version( ext_name )
+    try:
+        return ver.split( "." )[ 0 ]
+    except Exception:
+        pass
+    return None
+
+def get_ext_version_minor( ext_name ):
+    r"""
+    Get version de l'extension from salomexd
+
+    Args:
+        ext_name - the extension name
+
+    Returns:
+        version minor - string
+    """
+    ver = get_ext_version( ext_name )
+    try:
+        return ver.split( "." )[ 1 ]
+    except Exception:
+        pass
+    return None
+
+def get_ext_version_release( ext_name ):
+    r"""
+    Get version de l'extension from salomexd
+
+    Args:
+        ext_name - the extension name
+
+    Returns:
+        version release - string
+    """
+    ver = get_ext_version( ext_name )
+    try:
+        return ver.split( "." )[ 2 ]
+    except Exception:
+        pass
+    return None
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
