@@ -40,7 +40,7 @@ from traceback import format_exc
 import SalomeOnDemandTK.extension_remover as extension_remover
 
 from .extension_utilities import logger, \
-    DFILE_EXT, ARCFILE_EXT, EXTDEPENDSON_KEY, INSTALLFILE_EXT, EXTVERSION_KEY, DFILES_DIR, \
+    DFILE_EXT, ARCFILE_EXT, EXTDEPENDSON_KEY, INSTALLFILE_EXT, EXTVERSION_KEY, DFILES_DIR, POSTINSTALL_DIR, \
     isvalid_filename, isvalid_dirname, ext_info_bykey, \
     get_app_root, check_if_installed, comp_interaction_treat, get_module_name, \
     EXTISGUI_KEY, MODELVERSION_KEY, value_from_salomexd, EXTDEPNAME_KEY, EXTDEPVERSION_KEY, \
@@ -162,7 +162,7 @@ def install_salomex(salomex, remove_old_pkg = False):
         return None
 
     # Execute post-install
-    ext_post_install_script = os.path.join(app_root,salome_ext_name + '.' + INSTALLFILE_EXT)
+    ext_post_install_script = os.path.join(app_root,POSTINSTALL_DIR,salome_ext_name + '.' + INSTALLFILE_EXT)
 
     if os.path.isfile(ext_post_install_script):
         os.chmod(ext_post_install_script, 0o755)
@@ -170,7 +170,7 @@ def install_salomex(salomex, remove_old_pkg = False):
         if ret != 0:
             logger.error("Post installation is failed")
             return 1
-        os.remove(ext_post_install_script)
+        #os.remove(ext_post_install_script)
 
     # Get module name to activate later
     module_name = get_module_name(app_root, salome_ext_name)

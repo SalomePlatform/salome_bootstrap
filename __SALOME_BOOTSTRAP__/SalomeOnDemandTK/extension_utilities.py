@@ -60,6 +60,7 @@ EXT_MNG_DIR = "ext_mng"
 DFILES_DIR = os.path.join(EXT_MNG_DIR,"metadata")
 CFILES_DIR = os.path.join(EXT_MNG_DIR,"control_files")
 ENVFILES_DIR = os.path.join(EXT_MNG_DIR,"env")
+POSTINSTALL_DIR = os.path.join(EXT_MNG_DIR,"postinstall")
 
 SALOME_EXTDIR = '__SALOME_EXT__'
 ARCFILE_EXT = 'salomex'
@@ -532,6 +533,21 @@ def find_envpy(install_dir, salomex_name):
     """
 
     return find_file(install_dir, os.path.join(ENVFILES_DIR, salomex_name + ENVPYFILE_SUF))
+
+
+def find_postinstall(install_dir, salomex_name):
+    """
+    Finds a _env.py file for the given extension.
+
+    Args:
+        install_dir - path to directory to check.
+        salomex_name - extension's name.
+
+    Returns:
+        Abs path if the file exist, otherwise None.
+    """
+
+    return find_file(install_dir, os.path.join(POSTINSTALL_DIR, salomex_name + '.' +INSTALLFILE_EXT))
 
 
 def module_from_filename(filename):

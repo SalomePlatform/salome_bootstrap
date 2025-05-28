@@ -39,7 +39,7 @@ from traceback import format_exc
 from .extension_utilities import logger, \
     SALOME_EXTDIR, EXTISGUI_KEY, EXTSMOGULENAME_KEY, EXTNAME_KEY, \
     isvalid_dirname, list_dependants, is_empty_dir, \
-    find_envpy, value_from_salomexd, check_if_installed, get_module_name
+    find_envpy, value_from_salomexd, check_if_installed, get_module_name, find_postinstall
 
 
 def remove_if_empty(top_dir, directory):
@@ -173,6 +173,13 @@ def remove_salomex(install_dir, salomex_name, force = False):
         os.remove(env_py)
     else:
         logger.warning('Cannot find and remove %s file! ', env_py)
+
+    # Remove post_install script
+    post_install_file = find_postinstall(install_dir, salomex_name)
+    if post_install_file:
+        os.remove(post_install_file)
+    else:
+        logger.warning('Cannot find and remove %s file! ', post_install_file)
 
     # Remove description file
     module_name = ""
