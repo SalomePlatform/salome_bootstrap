@@ -79,7 +79,6 @@ def main(args):
     # Mandatory Env Var
     context.setVariable(r"SALOME_APPLICATION_DIR", salome_appli_dir, overwrite=True)
     context.setVariable(r"ABSOLUTE_APPLI_PATH", abs_appli_path, overwrite=True)
-    context.setVariable(r'SALOMEAPP_ROOT_DIR', abs_appli_path, overwrite=True)
     context.setVariable(r"APPLI", os.path.join(salome_appli_dir, "salome"), overwrite=True) # KERNEL Launcher
     context.addToPath(os.path.join(abs_appli_path,"bin/salome"))
     context.addToPythonPath(bootstrap_dir)
