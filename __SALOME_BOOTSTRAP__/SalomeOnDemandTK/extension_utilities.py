@@ -87,29 +87,6 @@ EXTDEPVERSION_KEY = 'version'
 DKEY_LIST = [ EXTNAME_KEY, EXTDESCR_KEY, EXTDEPENDSON_KEY, EXTAUTHOR_KEY, EXTCOMPONENT_KEY, EXTSMOGULENAME_KEY, EXTISGUI_KEY ]
 ITERACTIVE_EXTCOMPONENT_KEY = 'salome_interactive'
 
-def is_salome_on_demand():
-    """
-    Check if we are in salome_on_demand application environment
-    """
-
-    sod_env = os.getenv("SALOME_ON_DEMAND")
-    if sod_env and sod_env == "HIDE":
-        return False
-
-    salomeapp_dir = os.getenv( "SALOME_APPLICATION_DIR" )
-    if not salomeapp_dir:
-        return False
-
-    sod_abs_appli_path = os.path.realpath(os.path.join(salomeapp_dir,"__RUN_SALOME__"))
-    abs_appli_path = os.path.realpath(os.getenv("ABSOLUTE_APPLI_PATH"))
-    if not sod_abs_appli_path and not abs_appli_path:
-        return False
-    if sod_abs_appli_path != abs_appli_path:
-        return False
-
-    return True
-
-
 def read_salomexd(file_path):
     """
     Reads a content of a salomexd file. Current version is a json file.

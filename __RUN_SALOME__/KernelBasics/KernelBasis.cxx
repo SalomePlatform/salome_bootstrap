@@ -19,9 +19,11 @@
 
 #include "KernelBasis.hxx"
 
+#include <iostream>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
+#include <string.h>
 
 static bool DEFAULT_SSL_MODE = true;
 static bool GUI_MODE = false;
@@ -29,6 +31,41 @@ static bool GUI_MODE = false;
 // IOR of SALOME_Embedded_NamingService servant
 static std::string IOR_OF_EMBEDDED_NS;
 
+std::string path_join(const std::string& root, const std::string& addition) {
+    if (root.empty()) return addition;
+    char sep =
+    #ifdef _WIN32
+        '\\';
+    #else
+        '/';
+    #endif
+
+    if (root.back() == sep)
+        return root + addition;
+    else
+        return root + sep + addition;
+}
+
+bool is_SalomeOnDemand()
+{
+  const char *sod_env = std::getenv("SALOME_ON_DEMAND");
+  if (sod_env && (sod_env[0] != '\0') && (strcmp(sod_env, "HIDE")))
+    return false;
+
+  const char *salomeapp_dir = std::getenv("SALOME_APPLICATION_DIR");
+  if (!salomeapp_dir || (salomeapp_dir[0] == '\0'))
+    return false;
+
+  std::string sod_abs_appli_path = path_join(salomeapp_dir, "__RUN_SALOME__");
+  const char *abs_appli_path = std::getenv("ABSOLUTE_APPLI_PATH");
+
+  if (!abs_appli_path)
+    return false;
+  if (abs_appli_path != sod_abs_appli_path)
+    return false;
+
+  return true;
+}
 bool getSSLMode()
 {
   return DEFAULT_SSL_MODE;

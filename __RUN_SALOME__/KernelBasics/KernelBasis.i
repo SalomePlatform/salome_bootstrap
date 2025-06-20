@@ -67,6 +67,8 @@ using namespace SALOME;
 %rename (GetForwardCurrentDirectoryStatus) GetForwardCurrentDirectoryStatusSwig;
 %rename (SetForwardCurrentDirectoryStatus) SetForwardCurrentDirectoryStatusSwig;
 
+bool is_SalomeOnDemand();
+
 bool getSSLMode();
 void setSSLMode(bool sslMode);
 

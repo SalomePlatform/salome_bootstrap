@@ -24,6 +24,9 @@
 #include <string>
 #include <vector>
 
+std::string BASICS_EXPORT path_join(const std::string& base, const std::string& addition);
+bool BASICS_EXPORT is_SalomeOnDemand();
+
 bool BASICS_EXPORT getSSLMode();
 void BASICS_EXPORT setSSLMode(bool sslMode);
 bool BASICS_EXPORT getGUIMode();
