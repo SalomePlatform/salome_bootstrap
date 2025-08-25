@@ -31,7 +31,7 @@ ELSE()
   MESSAGE(FATAL_ERROR "We absolutely need the Salome CMake configuration files, please define CONFIGURATION_ROOT_DIR !")
 ENDIF()
 
-SALOME_SETUP_VERSION(9.14.0)
+SALOME_SETUP_VERSION(9.15.0)
 MESSAGE(STATUS "Building ${PROJECT_NAME_UC} ${${PROJECT_NAME_UC}_VERSION} from \"${${PROJECT_NAME_UC}_GIT_SHA1}\"")
 
 # Platform setup
