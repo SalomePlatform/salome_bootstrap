@@ -81,6 +81,7 @@ EXTISGUI_KEY = 'salomegui'
 EXTSMOGULENAME_KEY = 'salomemodule_name'
 License_KEY = 'License'
 MODELVERSION_KEY = 'ModelVersion'
+EXTSUFFIX_KEY = "suffix"
 
 EXTDEPNAME_KEY = 'name'
 EXTDEPVERSION_KEY = 'version'

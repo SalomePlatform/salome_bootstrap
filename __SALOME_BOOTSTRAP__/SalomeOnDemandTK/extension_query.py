@@ -39,7 +39,7 @@ import sys
 from traceback import format_exc
 
 from .extension_utilities import logger, \
-    SALOME_EXTDIR, DFILE_EXT, EXTDEPENDSON_KEY, EXTDESCR_KEY, EXTAUTHOR_KEY, EXTCOMPONENT_KEY, DFILES_DIR, EXTVERSION_KEY, \
+    SALOME_EXTDIR, DFILE_EXT, EXTDEPENDSON_KEY, EXTDESCR_KEY, EXTAUTHOR_KEY, EXTCOMPONENT_KEY, DFILES_DIR, EXTVERSION_KEY, EXTSUFFIX_KEY, \
     isvalid_dirname, find_salomexc, list_files_ext, read_salomexd, comp_interaction_treat
 
 
@@ -317,7 +317,7 @@ def ext_info_dict(directory):
         directory - the given ext install directory.
 
     Returns:
-        A dictionary {name: [descr, author, components, size]}.
+        A dictionary {name: [descr, author, components, size, version, suffix]}.
     """
 
     salomexd_dir = os.path.join(directory, DFILES_DIR)
@@ -350,7 +350,17 @@ def ext_info_dict(directory):
             components = ', '.join(comp_interaction_treat(salomexd_content[EXTCOMPONENT_KEY]))
             logger.debug('components: %s', components)
 
-        ext_info[ext_name] = [descr, author, components, size]
+        version = ''
+        if EXTVERSION_KEY in salomexd_content:
+            version = salomexd_content[EXTVERSION_KEY]
+            logger.debug('version: %s', version)
+
+        suffix = 1
+        if EXTSUFFIX_KEY in salomexd_content:
+            suffix = salomexd_content[EXTSUFFIX_KEY]
+            logger.debug('suffix: %s', suffix)
+
+        ext_info[ext_name] = [descr, author, components, size, version, suffix]
 
     logger.debug('Installed extensions info: %s', ext_info)
     return ext_info
