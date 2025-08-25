@@ -317,7 +317,7 @@ def ext_info_dict(directory):
         directory - the given ext install directory.
 
     Returns:
-        A dictionary {name: [descr, author, components, size, version, suffix]}.
+        A dictionary {name: {salomexd_content}}.
     """
 
     salomexd_dir = os.path.join(directory, DFILES_DIR)
@@ -335,36 +335,65 @@ def ext_info_dict(directory):
         # Collect salomexd info
         salomexd_content = read_salomexd(salomexd_file)
 
+        ext_info[ext_name] = salomexd_content
+        ext_info[ext_name]["size"] = size
+
+    logger.debug('Installed extensions info dict: %s', ext_info)
+    return ext_info
+
+def ext_info_list(directory):
+    r"""
+    Get installed salome extensions info.
+
+    Args:
+        directory - the given ext install directory.
+
+    Returns:
+        A dictionary {name: [descr, author, components, size, version, suffix]}.
+    """
+
+    info_dict = ext_info_dict(directory)
+
+    ext_info = {}
+    for ext_name in info_dict:
+
         descr = ''
-        if EXTDESCR_KEY in salomexd_content:
-            descr = salomexd_content[EXTDESCR_KEY]
+        if EXTDESCR_KEY in info_dict[ext_name]:
+            descr = info_dict[ext_name][EXTDESCR_KEY]
             logger.debug('descr: %s', descr)
 
         author = ''
-        if EXTAUTHOR_KEY in salomexd_content:
-            author = salomexd_content[EXTAUTHOR_KEY]
+        if EXTAUTHOR_KEY in info_dict[ext_name]:
+            author = info_dict[ext_name][EXTAUTHOR_KEY]
             logger.debug('author: %s', author)
 
         components = ''
-        if EXTCOMPONENT_KEY in salomexd_content:
-            components = ', '.join(comp_interaction_treat(salomexd_content[EXTCOMPONENT_KEY]))
+        if EXTCOMPONENT_KEY in info_dict[ext_name]:
+            components = ', '.join(comp_interaction_treat(info_dict[ext_name][EXTCOMPONENT_KEY]))
             logger.debug('components: %s', components)
 
         version = ''
-        if EXTVERSION_KEY in salomexd_content:
-            version = salomexd_content[EXTVERSION_KEY]
+        if EXTVERSION_KEY in info_dict[ext_name]:
+            version = info_dict[ext_name][EXTVERSION_KEY]
             logger.debug('version: %s', version)
 
         suffix = 1
-        if EXTSUFFIX_KEY in salomexd_content:
-            suffix = salomexd_content[EXTSUFFIX_KEY]
+        if EXTSUFFIX_KEY in info_dict[ext_name]:
+            suffix = info_dict[ext_name][EXTSUFFIX_KEY]
             logger.debug('suffix: %s', suffix)
+
+        size = 0
+        if "size" in info_dict[ext_name]:
+            size = info_dict[ext_name]["size"]
+            logger.debug('size: %s', size)
+        else:
+            logger.error(f'size of {ext_name} is not received')
+            return None
 
         ext_info[ext_name] = [descr, author, components, size, version, suffix]
 
     logger.debug('Installed extensions info: %s', ext_info)
     return ext_info
-
 
 def ext_by_dependants(dep_tree, depends_on=None):
     r"""
