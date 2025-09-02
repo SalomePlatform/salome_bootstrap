@@ -22,7 +22,7 @@
 #
 
 import os, sys, string
-from salome_utils import getHostName
+from salome.kernel.salome_utils import getHostName
 process_id = {}
 import logging
 

@@ -30,25 +30,38 @@ SET(SCRIPTS
   addToKillList.py
   killSalome.py
   killSalomeWithPort.py
-  launchConfigureParser.py
   NSparam.py
   ORBConfigFile.py
-  parseConfigFile.py
   PortManager.py
-  runSalomeCommon.py
   runSalomeOnDemand.py
-  runSession.py
   runRemote.py
-  runTests.py
-  ${CMAKE_CURRENT_BINARY_DIR}/salomeContextUtils.py
   salomeContext.py
-  salome_utils.py
+  runSalome.py
   searchFreePort.py
-  server.py
   setenv.py
   python_test_driver.py
-  ## For salome test with session
-  #salome_test_driver.py
+  )
+  
+  SET(IMPLFROMSCRIPT
+  addToKillList_impl.py
+  killSalome_impl.py
+  killSalomeWithPort_impl.py
+  NSparam_impl.py
+  ORBConfigFile_impl.py
+  runSalomeOld_impl.py
+  runSalome_impl.py
+  runSalomeOnDemand_impl.py
+  runSalomeNoServer_impl.py
+  salomeContext_impl.py
+  setenv_impl.py
+  salome_utils.py
+  launchConfigureParser.py
+  ${CMAKE_CURRENT_BINARY_DIR}/salomeContextUtils.py
+  parseConfigFile.py
+  runSession.py
+  runSalomeCommon.py
+  server.py
+  runTests.py
   )
 
 CONFIGURE_FILE(test/CTestTestfile.cmake.in test/CTestTestfile.cmake @ONLY)
@@ -57,6 +70,8 @@ INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test
         DESTINATION ${RUN_SALOME_SCRIPTS})
 INSTALL(PROGRAMS ${SCRIPTS} 
         DESTINATION ${RUN_SALOME_SCRIPTS})
+INSTALL(FILES ${IMPLFROMSCRIPT} DESTINATION ${SALOME_SALOMEBOOTSTRAP_INSTALL_PYTHON}) 
+
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/.bashrc DESTINATION ${ABS_APPLI_PATH})
 
 IF( (NOT DEFINED $ENV{PYTHON_ROOT_DIR}) AND (NOT DEFINED $ENV{PYTHON_INSTALL_DIR}) AND (NOT DEFINED $ENV{PYTHONHOME}) )

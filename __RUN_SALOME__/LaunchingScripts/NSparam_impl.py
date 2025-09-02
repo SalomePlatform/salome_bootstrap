@@ -22,34 +22,29 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-## @file killSalomeWithPort.py
-#  @brief Forcibly stop %SALOME processes from given session(s).
+import os
+
+def getNSparams(info=""):
+    """
+    check environment for omniORB configuration file.
+    parse the file to find the line defining naming service  host and port,
+    set environment variables NSPORT and NSHOST,
+    get host and port,
+    if   info==host print host
+    elif info==port print host
+    else    print 2 strings on stdout on one line: host port
+    """
+    from .salome_utils import getORBcfgInfo
+    _, my_host, my_port = getORBcfgInfo()
+    if info=='host':
+        os.environ['NSHOST'] = my_host
+        return my_host
+        pass
+    elif info=='port':
+        os.environ['NSPORT'] = my_port
+        return my_port
+        pass
+    else:
+        return my_host, my_port
+    pass
 #
-#  The sessions are indicated by their ports on the command line as in below example:
-#  @code
-#  killSalomeWithPort.py 2811 2815
-#  @endcode
-
-"""
-Forcibly stop given SALOME session(s).
-
-To stop one or more SALOME sessions, specify network ports they are bound to,
-for example:
-
-* in shell
-
-    $ killSalomeWithPort.py 2811 2815
-
-* in Python script:
-
-    from killSalomeWithPort import killMyPort
-    killMyPort(2811, 2815)
-
-"""
-
-# pragma pylint: disable=invalid-name
-
-from salome.kernel.killSalomeWithPort_impl import  main
-
-if __name__ == '__main__':
-    main()

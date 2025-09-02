@@ -46,6 +46,7 @@ OPTION(WRAP_PYTHON "Build SALOME wrap python" ON)
 
 # Required prerequisites
 # ======================
+INCLUDE(${CONFIGURATION_ROOT_DIR}/cmake/ConfigureRPath.cmake)
 FIND_PACKAGE(SalomePythonInterp REQUIRED)
 FIND_PACKAGE(SalomePThread REQUIRED)
 FIND_PACKAGE(SalomeCppUnit)
@@ -65,6 +66,11 @@ SET(SALOME_INSTALL_LIBS lib/salome CACHE PATH "Install path: SALOME libs")
 SET(SALOME_INSTALL_HEADERS include/salome CACHE PATH "Install path: SALOME headers")
 SET(SALOME_INSTALL_CMAKE salome_adm/cmake_files CACHE PATH "Install path: SALOME CMake files")
 SET(SALOME_EXT_INSTALL __SALOME_EXT__ CACHE PATH "Install path: SALOME extension install directory")
+
+SET(_pydir __RUN_SALOME__/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages)
+# for clients of KERNEL
+SET(SALOME_SALOMEBOOTSTRAP_INSTALL_PYTHON ${_pydir}/salome/kernel)
+
 
 SET( ABS_APPLI_PATH __RUN_SALOME__ CACHE PATH "Install path: Absolute appli path")
 

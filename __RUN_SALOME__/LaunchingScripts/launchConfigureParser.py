@@ -28,7 +28,7 @@ import re
 import sys
 import xml.sax
 
-from salome_utils import verbose, getPortNumber, getHomeDir
+from .salome_utils import verbose, getPortNumber, getHomeDir
 
 
 # names of tags in XML configuration file
@@ -1058,7 +1058,7 @@ def get_env(appname=salomeappname, cfgname=salomecfgname, exeName=None, keepEnvi
             args["study_hdf"] = arg
 
     # Python scripts
-    from salomeContextUtils import getScriptsAndArgs, ScriptAndArgs
+    from .salomeContextUtils import getScriptsAndArgs, ScriptAndArgs
     args[script_nam] = getScriptsAndArgs(cmd_opts.arguments)
     if args[gui_nam] and args["session_gui"]:
         new_args = []

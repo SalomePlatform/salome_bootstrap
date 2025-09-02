@@ -9,19 +9,29 @@ import os
 import sys
 import subprocess
 import os.path
+import glob
 
 salome_appli_dir = os.path.dirname(os.path.realpath(__file__))
 abs_appli_path = os.path.join(salome_appli_dir,"__RUN_SALOME__")
 bootstrap_dir = os.path.join(salome_appli_dir,"__SALOME_BOOTSTRAP__")
+
+# Check python lib path of __RUN_SALOME__
+abs_appli_pylib_path_list = glob.glob(os.path.join(abs_appli_path,"lib","python3*","site-packages"))
+if len(abs_appli_pylib_path_list) == 0:
+  print("ERROR: Python lib path of __RUN_SALOME__ not found")
+  sys.exit(1)
+abs_appli_pylib_path = os.path.realpath(abs_appli_pylib_path_list[0])
+
 # Preliminary work to initialize path to SALOME Python modules
 def __initialize():
 
   sys.path[:0] = [ os.path.join(abs_appli_path, "bin/salome") ]
+  sys.path[:0] = [ abs_appli_pylib_path ]
   sys.path[:0] = [ bootstrap_dir ]
   
   # define folder to store omniorb config (initially in virtual application folder)
   try:
-    from salomeContextUtils import setOmniOrbUserPath
+    from salome.kernel.salomeContextUtils import setOmniOrbUserPath
     setOmniOrbUserPath()
   except Exception as e:
     print(e)
@@ -83,6 +93,7 @@ def main(args):
     context.addToPath(os.path.join(abs_appli_path,"bin/salome"))
     context.addToPythonPath(bootstrap_dir)
     context.addToPythonPath(os.path.join(abs_appli_path, 'lib', 'salome'))
+    context.addToPythonPath(abs_appli_pylib_path)
     context.addToLdLibraryPath(os.path.join(abs_appli_path, 'lib', 'salome'))
 
 

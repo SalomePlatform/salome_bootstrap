@@ -79,7 +79,7 @@ def runTests(args, exe=None):
 
   appliPath = os.getenv("ABSOLUTE_APPLI_PATH")
   if not appliPath:
-      raise SalomeContextException("Unable to find application path. Please check that the variable ABSOLUTE_APPLI_PATH is set.")
+    raise SalomeContextException("Unable to find application path. Please check that the variable ABSOLUTE_APPLI_PATH is set.")
 
   testPath = os.path.join(appliPath, __testSubDir)
 
