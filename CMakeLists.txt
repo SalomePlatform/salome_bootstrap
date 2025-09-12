@@ -44,6 +44,9 @@ SET(BUILD_SHARED_LIBS TRUE)
 OPTION(SALOME_BUILD_TESTS "Build SALOME tests" ON)
 OPTION(WRAP_PYTHON "Build SALOME wrap python" ON)
 
+# Advanced:
+OPTION(SALOME_USE_64BIT_IDS "Size of IDs to refer cells and nodes. 32 bits when OFF (default), 64 bits when ON." OFF)
+
 # Required prerequisites
 # ======================
 INCLUDE(${CONFIGURATION_ROOT_DIR}/cmake/ConfigureRPath.cmake)
