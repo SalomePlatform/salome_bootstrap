@@ -223,7 +223,7 @@ def foreGround(args, ior_fakens_filename):
     import CORBA
     # do not comment following lines to downcast safely orb.string_to_object(ior_fakens.Resolve("/Kernel/Session").decode())
     from . import Engines
-    from . import SALOME
+    from . import SALOME_CMOD
     from time import sleep
     orb = CORBA.ORB_init([''], CORBA.ORB_ID)
     ior_fakens = None
