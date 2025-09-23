@@ -215,14 +215,15 @@ def foreGround(args, ior_fakens_filename):
     nbtot = 200
     nb = 0
     if ior_fakens_filename is None:
-        logger.warn("No file set to host IOR of the fake naming server")
+        logger.warning("No file set to host IOR of the fake naming server")
         return
     if not os.path.exists(ior_fakens_filename):
-        logger.warn("No file {} set to host IOR of the fake naming server does not exit !")
+        logger.warning("No file {} set to host IOR of the fake naming server does not exit !")
         return
     import CORBA
-    #from . import Engines
-    #from . import SALOME
+    # do not comment following lines to downcast safely orb.string_to_object(ior_fakens.Resolve("/Kernel/Session").decode())
+    from . import Engines
+    from . import SALOME
     from time import sleep
     orb = CORBA.ORB_init([''], CORBA.ORB_ID)
     ior_fakens = None
