@@ -206,7 +206,7 @@ class LoggerServer(Server):
     def __init__(self,args):
         self.args=args
         self.initArgs()
-        from .salome_utils import generateFileName, getLogDir
+        from salome.kernel.salome_utils import generateFileName, getLogDir
         logfile = generateFileName( getLogDir(),
                                     prefix="logger",
                                     extension="log",

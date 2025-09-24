@@ -136,7 +136,7 @@ def set_env(args, modules_list, modules_root_dir, silent=False, keepEnvironment=
     """Add to the PATH-variables modules specific paths"""
 
     import os
-    from .salome_utils import getLogDir, generateFileName, makeTmpDir, getPortNumber
+    from salome.kernel.salome_utils import getLogDir, generateFileName, makeTmpDir, getPortNumber
 
     if 'launcher' in args:
       pos = args['launcher'].find(":")

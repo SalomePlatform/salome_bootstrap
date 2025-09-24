@@ -63,7 +63,7 @@ from time import sleep
 
 import psutil
 
-from .salome_utils import (generateFileName, getHostName, getLogDir, getShortHostName,
+from salome.kernel.salome_utils import (generateFileName, getHostName, getLogDir, getShortHostName,
                           getUserName, killOmniNames, killPid, verbose)
 import logging
 logger = logging.getLogger()

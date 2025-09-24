@@ -17,10 +17,15 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
+import argparse
 import os
-import sys
 import select
 import subprocess
+import sys
+from pathlib import Path
+
+from salomeContextUtils import SalomeContextException  #@UnresolvedImport
+
 
 def __configureTests(args=None, exe=None):
   if args is None:
@@ -29,8 +34,8 @@ def __configureTests(args=None, exe=None):
       usage = "Usage: %s [options]"%exe
   else:
       usage = "Usage: %prog [options]"
-  epilog  = """\n
-Run tests of SALOME components provided with application.\n
+  epilog  = """
+Run tests of SALOME components provided with application.
 Principal options are:
     -h,--help
         Show this help message and exit.
@@ -59,29 +64,51 @@ Principal options are:
     -LE <regex>, --label-exclude <regex>
         Exclude tests with labels matching regular expression.
 
-For complete description of available options, pleaser refer to ctest documentation.\n
+For complete description of available options, pleaser refer to ctest documentation.
 """
   if not args:
-    return []
+    return argparse.Namespace(run_dir=None), []
 
-  if args[0] in ["-h", "--help"]:
-    print(usage + epilog)
-    sys.exit(0)
+  parser = argparse.ArgumentParser(usage=usage + epilog,
+                                   epilog="Others options are passed to ctest")
+  parser.add_argument(
+      "--run-dir",
+      nargs='?',
+      const="run_in_default",
+      default=None,
+      help="directory where ctest will be run (write access is required). If used without a path, runs in the default directory.",
+  )
+  return parser.parse_known_args(args)
 
-  return args
-#
 
 # tests must be in ${ABSOLUTE_APPLI_PATH}/${__testSubDir}/
 __testSubDir = "bin/salome/test"
 
 def runTests(args, exe=None):
-  args = __configureTests(args, exe)
-
   appliPath = os.getenv("ABSOLUTE_APPLI_PATH")
   if not appliPath:
     raise SalomeContextException("Unable to find application path. Please check that the variable ABSOLUTE_APPLI_PATH is set.")
 
   testPath = os.path.join(appliPath, __testSubDir)
+  cfg, args = __configureTests(args, exe)
+  
+  run_dir_arg = cfg.run_dir
+
+  if run_dir_arg and run_dir_arg != "run_in_default":
+    run_dir = Path(run_dir_arg)
+    ceabin = Path(appliPath).parent
+    prefix = ceabin.parent.parent.parent
+    run_dir.mkdir(parents=True, exist_ok=True)
+    for path in Path(testPath).glob('CTest*'):
+       if not path.is_file():
+          continue
+       with open(path) as fobj:
+          content = fobj.read()
+       content = content.replace("../../../../../../..", str(prefix))
+       content = content.replace("../../..", str(ceabin))
+       with open(run_dir / path.name, "w") as fobj:
+          fobj.write(content)
+    testPath = run_dir
 
   command = ["ctest"] + args
   p = subprocess.Popen(command, cwd=testPath)

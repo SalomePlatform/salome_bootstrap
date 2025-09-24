@@ -25,7 +25,7 @@
 # this file is extraction of set_env from runSalome.py
 # for reusage in automated tests
 
-from salome.kernel.setenv_impl import main
+from salome.kernel.setenv_impl import main, add_path, salome_subdir, get_config, set_env
 
 if __name__ == "__main__":
    import user

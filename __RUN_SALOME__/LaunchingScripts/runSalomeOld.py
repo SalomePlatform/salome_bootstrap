@@ -26,7 +26,8 @@
 # \brief Module that provides services to launch SALOME
 #
 
-from salome.kernel.runSalomeOld_impl import runSalome
+from salome.kernel.runSalomeOld_impl import runSalome, LoggerServer, process_id, \
+    RegistryServer, CatalogServer, LauncherServer
 
 # -----------------------------------------------------------------------------
 

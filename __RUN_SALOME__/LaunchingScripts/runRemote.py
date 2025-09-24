@@ -24,7 +24,7 @@ import os
 from optparse import OptionParser
 import subprocess
 from salome.kernel.salome_utils import getUserName
-from salome.kernel.salomeContextUtils import getShortAndExtraArgs
+from salomeContextUtils import getShortAndExtraArgs
 
 # Use to display newlines (\n) in epilog
 class MyParser(OptionParser):

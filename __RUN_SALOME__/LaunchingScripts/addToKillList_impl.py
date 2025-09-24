@@ -32,7 +32,7 @@ def findFileDict():
     Detect current SALOME session's port number.
     Returns port number.
     """
-    from .salome_utils import getPortNumber
+    from salome.kernel.salome_utils import getPortNumber
     port = getPortNumber()
     if verbose(): print("myport = ", port)
     return port
@@ -79,7 +79,7 @@ def addToKillList(command_pid, command, port=None):
             process_ids.append({int(command_pid): [command]})
             dir = os.path.dirname(filedict)
             if not os.path.exists(dir):
-                from .salome_utils import makeDir
+                from salome.kernel.salome_utils import makeDir
                 makeDir(dir)
             with open(filedict,'wb') as fpid:
                 pickle.dump(process_ids, fpid)
