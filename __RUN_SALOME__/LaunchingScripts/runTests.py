@@ -24,7 +24,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from salomeContextUtils import SalomeContextException  #@UnresolvedImport
+from salome.kernel.salomeContextUtils import SalomeContextException  #@UnresolvedImport
 
 
 def __configureTests(args=None, exe=None):

@@ -32,12 +32,10 @@ SET(SCRIPTS
   killSalomeWithPort.py
   NSparam.py
   ORBConfigFile.py
-  PortManager.py
   runSalomeOnDemand.py
   runRemote.py
   salomeContext.py
   runSalome.py
-  searchFreePort.py
   setenv.py
   python_test_driver.py
   )
@@ -62,6 +60,8 @@ SET(SCRIPTS
   runSalomeCommon.py
   server.py
   runTests.py
+  PortManager.py
+  searchFreePort.py
   )
 
 CONFIGURE_FILE(test/CTestTestfile.cmake.in test/CTestTestfile.cmake @ONLY)
