@@ -708,3 +708,18 @@ def get_salome_version():
         except Exception:
             pass
     return ""
+
+def list_components(salome_root,salomex_name):
+    """
+    Get salome module components list from salomexd.
+
+    Args:
+        salome_root - directory where the given extension is installed.
+        salomex_name - the given extension's name.
+    """
+    components_list = ext_info_bykey(salome_root, salomex_name, EXTCOMPONENT_KEY)
+    if type(components_list) != list:
+        logger.debug(f'components_list is not well declared as list in {salomex_name}.salomexd .')
+        return None
+    good_components_list = [comp for comp in components_list if check_if_installed(salome_root,comp)[1]]
+    return good_components_list

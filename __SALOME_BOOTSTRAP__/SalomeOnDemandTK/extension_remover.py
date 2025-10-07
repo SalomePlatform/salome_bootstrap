@@ -38,7 +38,7 @@ from traceback import format_exc
 
 from .extension_utilities import logger, \
     SALOME_EXTDIR, EXTISGUI_KEY, EXTSMOGULENAME_KEY, EXTNAME_KEY, \
-    isvalid_dirname, list_dependants, is_empty_dir, \
+    isvalid_dirname, list_dependants, list_components, is_empty_dir, \
     find_envpy, value_from_salomexd, check_if_installed, get_module_name, find_postinstall
 
 
@@ -123,7 +123,7 @@ def remove_bylist(root_dir, salomexc):
 
     return True
 
-def remove_salomex(install_dir, salomex_name, force = False):
+def remove_salomex(install_dir, salomex_name, remove_comp = True, force = False):
     """
     Remove a salome extension from SALOME install root.
 
@@ -158,6 +158,21 @@ def remove_salomex(install_dir, salomex_name, force = False):
         else:
             logger.debug('Forcibly removing this extension %s may break the following dependent applications: %s!',
                 salomex_name, dependants)
+
+    # Get components:
+    components = list_components(install_dir, salomex_name)
+    if components and remove_comp:
+        for comp in components:
+            if comp == salomex_name:
+                continue
+            comp_depts = list_dependants(install_dir, comp)
+            if len(comp_depts) > 0:
+                if len(comp_depts) == 1 and comp_depts[0] == salomex_name:
+                    remove_salomex(install_dir, comp, force = True)
+                else:
+                    logger.warning(f"component {comp} can not be removed because followed extensions depend on it {comp_depts}")
+            else:
+                remove_salomex(install_dir, comp)
 
     # Try to remove all the files listed in the control file
     if not remove_bylist(os.path.join(install_dir, SALOME_EXTDIR), salomexc):
