@@ -32,7 +32,7 @@ from .salomeContextUtils import ScriptAndArgsObjectEncoder
 from . import runSalomeNoServer_impl
 from . import runSalomeCommon
 import platform
-from .launchConfigureParser import verbosity_nam, on_demand_nam
+from .launchConfigureParser import verbosity_nam
 import logging
 logger = logging.getLogger()
 
@@ -306,7 +306,6 @@ def runSalome():
     args, ior_fakens_filename = main()
     # --
     test = args['gui'] and args['session_gui']
-    test = test and not args[on_demand_nam]
     test = test or args['wake_up_session']
     # --
     # The next test covers the --pinter option or if var PYTHONINSPECT is set
