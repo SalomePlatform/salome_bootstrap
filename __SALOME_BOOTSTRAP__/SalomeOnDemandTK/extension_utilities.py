@@ -82,6 +82,7 @@ EXTSMOGULENAME_KEY = 'salomemodule_name'
 License_KEY = 'License'
 MODELVERSION_KEY = 'ModelVersion'
 EXTSUFFIX_KEY = "suffix"
+EXTDEPENDSONREMOVE_KEY = "depends_on_removed"
 
 EXTDEPNAME_KEY = 'name'
 EXTDEPVERSION_KEY = 'version'
@@ -451,7 +452,11 @@ def list_dependants(install_dir, salomex_name):
     if len(dependants) > 0:
         logger.debug('Followed extensions %s depend on %s',
             dependants, salomex_name)
-
+    for ext in dependants:
+        recursivedependants = list_dependants(install_dir, ext)
+        if recursivedependants:
+            dependants += recursivedependants
+    dependants = list(set(dependants))
     return dependants
 
 
@@ -709,7 +714,7 @@ def get_salome_version():
             pass
     return ""
 
-def list_components(salome_root,salomex_name):
+def list_dep_tobe_removed(salome_root,salomex_name, recursively = False):
     """
     Get salome module components list from salomexd.
 
@@ -717,9 +722,21 @@ def list_components(salome_root,salomex_name):
         salome_root - directory where the given extension is installed.
         salomex_name - the given extension's name.
     """
-    components_list = ext_info_bykey(salome_root, salomex_name, EXTCOMPONENT_KEY)
-    if type(components_list) != list:
-        logger.debug(f'components_list is not well declared as list in {salomex_name}.salomexd .')
+    ext_list = ext_info_bykey(salome_root, salomex_name, EXTDEPENDSONREMOVE_KEY)
+    if type(ext_list) != list:
+        logger.debug(f'{EXTDEPENDSONREMOVE_KEY} is not well declared as list in {salomex_name}.salomexd .')
         return None
-    good_components_list = [comp for comp in components_list if check_if_installed(salome_root,comp)[1]]
-    return good_components_list
+    if not ext_list:
+        return None
+    removed_ext_list = [comp for comp in ext_list if check_if_installed(salome_root,comp)[1]]
+    if recursively:
+        sub_removed_list = []
+        for ext in removed_ext_list:
+            el_removed_list = list_dep_tobe_removed(salome_root, ext, recursively)
+            if el_removed_list:
+                sub_removed_list += el_removed_list
+
+        removed_ext_list += sub_removed_list
+    removed_ext_list = list(set(removed_ext_list))
+
+    return removed_ext_list

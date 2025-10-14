@@ -33,14 +33,15 @@ def install(ext_file_path, force):
     import SalomeOnDemandTK.extension_unpacker as extension_unpacker
     extension_unpacker.install_salomex(ext_file_path, force)
 
-def remove(extname, force, remove_comp):
+def remove(extname, force, only):
     """ Remove extension module from salome_appli_dir
     extname: extension module name
     """
     logger.info("Remove %s"%extname)
-    import SalomeOnDemandTK.extension_remover as extension_remover
-    extension_remover.remove_salomex(salome_appli_dir, extname, remove_comp, force)
-    
+    from SalomeOnDemandTK.extension_remover import remove_salomex, AtRemoveAskerForce
+    remove_comp = not only
+    removed_list = remove_salomex(salome_appli_dir, extname, AtRemoveAskerForce(remove_comp), force)
+    logger.info(f"Removed extensions list: {removed_list}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -50,11 +51,11 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--file-path',default = argparse.SUPPRESS, help = 'extension package file path',
                         required = "install" in sys.argv)
     parser.add_argument('-f', '--force', action='store_true',default = False)
-    parser.add_argument('-r', '--remove-component', action='store_true',default = False, help = 'remove recursively all components')
+    parser.add_argument('-o', '--only', action='store_true',default = False, help = 'remove only main component')
     args = parser.parse_args()
 
     if args.mode == 'remove':
-        res = globals()[args.mode](args.extension_name, args.force, args.remove_component)
+        res = globals()[args.mode](args.extension_name, args.force, args.only)
     elif args.mode == 'install':
         res = globals()[args.mode](args.file_path, args.force)
     else:

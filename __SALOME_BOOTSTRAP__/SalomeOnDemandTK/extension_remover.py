@@ -35,12 +35,24 @@ import os
 import sys
 import shutil
 from traceback import format_exc
+import abc
 
 from .extension_utilities import logger, \
     SALOME_EXTDIR, EXTISGUI_KEY, EXTSMOGULENAME_KEY, EXTNAME_KEY, \
-    isvalid_dirname, list_dependants, list_components, is_empty_dir, \
+    isvalid_dirname, list_dependants, list_dep_tobe_removed, is_empty_dir, \
     find_envpy, value_from_salomexd, check_if_installed, get_module_name, find_postinstall
 
+class AtRemoveAskerAbstract:
+    @abc.abstractmethod
+    def askFor(self, extToAsk : str ):
+        raise RuntimeError("Not implemented")
+
+class AtRemoveAskerForce( AtRemoveAskerAbstract ):
+    def __init__(self, ok):
+        self._ok = ok
+
+    def askFor(self, extToAsk : str ):
+        return self._ok
 
 def remove_if_empty(top_dir, directory):
     """
@@ -123,7 +135,7 @@ def remove_bylist(root_dir, salomexc):
 
     return True
 
-def remove_salomex(install_dir, salomex_name, remove_comp = True, force = False):
+def remove_salomex(install_dir, salomex_name, ara : AtRemoveAskerAbstract, force = False):
     """
     Remove a salome extension from SALOME install root.
 
@@ -132,7 +144,7 @@ def remove_salomex(install_dir, salomex_name, remove_comp = True, force = False)
         salomex_name - a name of salome extension to remove.
 
     Returns:
-        List of deleted components or None if the functions fails.
+        List of deleted extensions or None if the functions fails.
     """
 
     logger.debug('Starting remove a salome extension %s', salomex_name)
@@ -151,28 +163,23 @@ def remove_salomex(install_dir, salomex_name, remove_comp = True, force = False)
     dependants = list_dependants(install_dir, salomex_name)
     if len(dependants) > 0:
         if not force:
-            logger.error('Cannot remove an extension %s because followed extensions depend on it: %s! '
-                'Going to exit from extension removing process.',
-                salomex_name, dependants)
+            logger.error( f'Cannot remove an extension {salomex_name} because followed extensions depend on it: {dependants} ! Going to exit from extension removing process.')
             return None
         else:
-            logger.debug('Forcibly removing this extension %s may break the following dependent applications: %s!',
-                salomex_name, dependants)
+            logger.debug( f'Forcibly removing this extension {salomex_name} may break the following dependent applications: {dependants} !' )
 
-    # Get components:
-    components = list_components(install_dir, salomex_name)
-    if components and remove_comp:
-        for comp in components:
-            if comp == salomex_name:
-                continue
-            comp_depts = list_dependants(install_dir, comp)
-            if len(comp_depts) > 0:
-                if len(comp_depts) == 1 and comp_depts[0] == salomex_name:
-                    remove_salomex(install_dir, comp, force = True)
-                else:
-                    logger.warning(f"component {comp} can not be removed because followed extensions depend on it {comp_depts}")
-            else:
-                remove_salomex(install_dir, comp)
+    # Get extensions to be removed with this extension:
+    # This extensions list must be get before delete all configuration files this extension,
+    # But these extensions in this list must be removed after this extension to avoid the non-stop recursive loop of delete
+    # REMARK: This function remove_salomex is recursive
+    #         so the list of extensions to be removed is not retrieved recursively
+    #         to avoid duplicate removed warning message
+    exts_tobe_removed_list = list_dep_tobe_removed(install_dir, salomex_name, False)
+
+    try:
+        remove_comp = exts_tobe_removed_list and ara.askFor( exts_tobe_removed_list )
+    except:
+        return None
 
     # Try to remove all the files listed in the control file
     if not remove_bylist(os.path.join(install_dir, SALOME_EXTDIR), salomexc):
@@ -193,8 +200,6 @@ def remove_salomex(install_dir, salomex_name, remove_comp = True, force = False)
     post_install_file = find_postinstall(install_dir, salomex_name)
     if post_install_file:
         os.remove(post_install_file)
-    else:
-        logger.warning('Cannot find and remove %s file! ', post_install_file)
 
     # Remove description file
     module_name = ""
@@ -206,7 +211,31 @@ def remove_salomex(install_dir, salomex_name, remove_comp = True, force = False)
         logger.warning('Cannot find and remove %s file! ', salomexd)
     if not module_name:
         module_name = salomex_name
-    return module_name
+    module_removed_list = [module_name]
+
+    # Remove depends_on_removed
+    if remove_comp:
+        for comp in exts_tobe_removed_list:
+            if comp == salomex_name:
+                continue
+
+            # Retrieve recursively all reverse dependencies of each extension in depends_on_removed list
+            # REMARK: extensions in this list which does not appear in the exts_tobe_removed_list, will not be removed
+            comp_depts = list_dependants(install_dir, comp)
+            not_removed_list = []
+            if len(comp_depts) > 0:
+                for ext in comp_depts:
+                    if ext not in exts_tobe_removed_list:
+                        not_removed_list += [ext]
+            if len(not_removed_list) >0:
+                logger.warning(f"Cannot remove {comp}. The folows extensions depend on it: {not_removed_list} ")
+            else:
+                logger.info("Remove depends_on_removed extension %s"%comp)
+                comp_removed_list = remove_salomex(install_dir, comp, AtRemoveAskerForce(True), force = True)
+                if comp_removed_list and len(comp_removed_list)>0:
+                    module_removed_list += comp_removed_list
+
+    return module_removed_list
 
 if __name__ == '__main__':
     if len(sys.argv) == 3:
