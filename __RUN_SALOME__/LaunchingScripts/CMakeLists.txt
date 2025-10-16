@@ -35,7 +35,6 @@ SET(SCRIPTS
   runSalomeOnDemand.py
   runRemote.py
   salomeContext.py
-  runSalome.py
   setenv.py
   python_test_driver.py
   )
@@ -47,7 +46,6 @@ SET(SCRIPTS
   NSparam_impl.py
   ORBConfigFile_impl.py
   runSalomeOld_impl.py
-  runSalome_impl.py
   runSalomeOnDemand_impl.py
   runSalomeNoServer_impl.py
   salomeContext_impl.py
