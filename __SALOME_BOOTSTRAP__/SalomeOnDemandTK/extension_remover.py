@@ -135,7 +135,7 @@ def remove_bylist(root_dir, salomexc):
 
     return True
 
-def remove_salomex(install_dir, salomex_name, ara : AtRemoveAskerAbstract, force = False):
+def remove_salomex(install_dir, salomex_name, ara : AtRemoveAskerAbstract = AtRemoveAskerForce(True) , force = False):
     """
     Remove a salome extension from SALOME install root.
 

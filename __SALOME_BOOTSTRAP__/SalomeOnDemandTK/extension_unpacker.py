@@ -90,7 +90,7 @@ def unpack_salomex(salome_root, salomex, remove_old_pkg):
             if salomexc:
                 if remove_old_pkg:
                     logger.debug('%s is already installed on your application. It will be removed forcibly first to be able to reinstalled', salome_ext_name)
-                    extension_remover.remove_salomex(salome_root, salome_ext_name, True)
+                    extension_remover.remove_salomex(salome_root, salome_ext_name, force = True)
                 else:
                     logger.warning('%s is already installed on your application. To reinstall an extension you need to remove it first!', salome_ext_name)
                     return None
