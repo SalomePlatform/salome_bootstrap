@@ -70,6 +70,7 @@ DFILE_EXT = 'salomexd'
 PYFILE_EXT = 'py'
 ENVPYFILE_SUF = '_env.py'
 INSTALLFILE_EXT = 'post_install'
+PREBUILD_EXT = 'pre_extension'
 
 EXTNAME_KEY = 'name'
 EXTVERSION_KEY = 'version'
@@ -740,3 +741,40 @@ def list_dep_tobe_removed(salome_root,salomex_name, recursively = False):
     removed_ext_list = list(set(removed_ext_list))
 
     return removed_ext_list
+def update_runpath(binaries_path : list, old_new_paths : dict):
+    """
+    :param binaries_path: list of strings to exectables to patch runpathes
+    :param old_new_paths: dictionary { "SALOMEBOOTSTRAP/__RUN_SALOME__/lib/salome": "__RUN_SALOME__/lib/salome", "../../../hdf5/lib": "../../lib" }
+    """
+    import subprocess
+    try:
+        for bin_path in binaries_path:
+            # Check if the binary exists
+            if not os.path.exists(bin_path):
+                raise FileNotFoundError(f"Binary not found: {bin_path}")
+
+                # Dictionary of path replacements: old partial path -> new path
+            # Read the current RUNPATH of the binary using chrpath
+            result = subprocess.run(
+                ["chrpath", "-l", bin_path],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            runpath_line = result.stdout.strip()
+            # Split the RUNPATH string into individual paths
+            current_paths = runpath_line.split('=')[1].split(':')
+            # For each path in the current RUNPATH, replace any matching old path with the new path
+            new_paths = [
+                next((p.replace(old, new) for old, new in old_new_paths.items() if old in p), p)
+                for p in current_paths
+            ]
+            new_rpath = ':'.join(new_paths)
+            # Apply the new RUNPATH to the binary using chrpath
+            subprocess.run(["chrpath", "-r", new_rpath, bin_path], check=True)
+
+    except FileNotFoundError as e:
+        logger.error(e)
+    except subprocess.CalledProcessError as e:
+        # Catch errors from subprocess (e.g., chrpath failure)
+        logger.error(f"Error while modifying RUNPATH: {e}")
