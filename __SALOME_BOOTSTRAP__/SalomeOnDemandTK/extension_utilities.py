@@ -778,3 +778,42 @@ def update_runpath(binaries_path : list, old_new_paths : dict):
     except subprocess.CalledProcessError as e:
         # Catch errors from subprocess (e.g., chrpath failure)
         logger.error(f"Error while modifying RUNPATH: {e}")
+
+def salometest_dir_correction(module_orig_dir):
+    """
+    move test directory under test/module_name
+    :param module_orig_dir: path to MODULE_ROOT_DIR
+    """
+    import glob, shutil
+    from tempfile import TemporaryDirectory
+
+    mod_name = os.path.basename(module_orig_dir)
+    test_dir = os.path.join(module_orig_dir,"bin","salome","test")
+    if not os.path.isdir(test_dir):
+        logger.debug(f"salome test directory is not found in {module_orig_dir}")
+        return
+
+    contain_test_dir = glob.glob(os.path.join(test_dir,"*"))
+    if len(contain_test_dir) == 1 and os.path.isdir(contain_test_dir[0]):
+        logger.debug(f"salome test directory of {mod_name} contain only one folder. Appending a sub-testfolder is no need in this case")
+        return
+    tmpdir = TemporaryDirectory()
+    correct_module_dir = tmpdir.name
+
+    for root, dirs, files in os.walk(module_orig_dir):
+        rel_path = os.path.relpath(root, module_orig_dir)
+        rel_path_splited = rel_path.split(os.sep)
+        if "bin/salome/test" == '/'.join(rel_path_splited[0:3]):
+            rel_path_splited.insert(3,mod_name.upper())
+            rel_path = f'{os.sep}'.join(rel_path_splited)
+        dst_path = os.path.join(correct_module_dir, rel_path)
+        os.makedirs(dst_path, exist_ok=True)
+        for f in files:
+            src_file = os.path.join(root, f)
+            dst_file = os.path.join(dst_path, f)
+            shutil.copy2(src_file, dst_file)
+        
+    # remove orig
+    shutil.rmtree(module_orig_dir)
+    #os.mkdir(module_orig_dir)
+    shutil.copytree(correct_module_dir, module_orig_dir)
