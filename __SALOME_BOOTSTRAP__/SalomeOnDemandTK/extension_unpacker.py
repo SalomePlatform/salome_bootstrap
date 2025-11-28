@@ -90,7 +90,11 @@ def unpack_salomex(salome_root, salomex, remove_old_pkg):
             if salomexc:
                 if remove_old_pkg:
                     logger.debug('%s is already installed on your application. It will be removed forcibly first to be able to reinstalled', salome_ext_name)
-                    extension_remover.remove_salomex(salome_root, salome_ext_name, force = True)
+                    # For now in the case of reinstalling en extension, we pre-remove only target extension and not its depends_on_removed.
+                    # That help avoid the conflicts when we reinstall a new extension
+                    # For exemple:
+                    # In the case of updating of SMESH-GUI, we must remove it first. If its depends_on_removed are removed too and these extensions are depends_on of SMESH-GUI too, we can not reinstall another SMESH-GUI because its prerequisites are no longer installed
+                    extension_remover.remove_salomex(salome_root, salome_ext_name, extension_remover.AtRemoveAskerForce(False), force = True)
                 else:
                     logger.warning('%s is already installed on your application. To reinstall an extension you need to remove it first!', salome_ext_name)
                     return None
