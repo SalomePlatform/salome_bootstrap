@@ -4,60 +4,21 @@ import argparse
 import os, sys, shutil
 
 
-from SalomeOnDemandTK.extension_utilities import logger, \
-    INSTALLFILE_EXT, BFILE_EXT, DFILE_EXT, ENVPYFILE_SUF, ARCFILE_EXT
+from SalomeOnDemandTK.extension_utilities import logger
 
-# get salome_appli_dir
-try:
-    salome_appli_dir = os.environ["SALOME_APPLICATION_DIR"]
-except:
-    salome_bootstrap_dir = os.path.dirname(os.path.realpath(__file__))
-    salome_appli_dir = os.path.dirname(salome_bootstrap_dir)
-
-ext_pkg_dir = os.path.join(salome_appli_dir,"ext_pkg")
-
-def install(ext_file_path, force):
-    """ Install extension module in salome_appli_dir
-    extname: extension module name
-    """
-    ext_pkg_name = os.path.basename(ext_file_path)
-
-    if not os.path.isfile(ext_file_path):
-        logger.error( "Extension package {} does not exist.\nPlease be sure that you have this package in {}"
-        .format(ext_pkg_name, ext_file_path) )
-        return 1
-
-    # Unpack the new extension
-    logger.info("Install %s"%ext_pkg_name)
-    os.environ["SALOME_APPLICATION_DIR"] = salome_appli_dir
-    import SalomeOnDemandTK.extension_unpacker as extension_unpacker
-    extension_unpacker.install_salomex(ext_file_path, force)
-
-def remove(extname, force, only):
-    """ Remove extension module from salome_appli_dir
-    extname: extension module name
-    """
-    logger.info("Remove %s"%extname)
-    from SalomeOnDemandTK.extension_remover import remove_salomex, AtRemoveAskerForce
-    remove_comp = not only
-    removed_list = remove_salomex(salome_appli_dir, extname, AtRemoveAskerForce(remove_comp), force)
-    logger.info(f"Removed extensions list: {removed_list}")
+import salome_pkg_install
+import salome_pkg_remove
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', default=argparse.SUPPRESS, help='We have 2 functions in this executable: install, remove')
-    parser.add_argument('-e', '--extension-name',default = argparse.SUPPRESS, help = 'extension package name',
-                        required = "remove" in sys.argv)
-    parser.add_argument('-p', '--file-path',default = argparse.SUPPRESS, help = 'extension package file path',
-                        required = "install" in sys.argv)
-    parser.add_argument('-f', '--force', action='store_true',default = False)
-    parser.add_argument('-o', '--only', action='store_true',default = False, help = 'remove only main component')
-    args = parser.parse_args()
+    subparsers = parser.add_subparsers(dest="mode", required=True, help='We have 2 functions in this executable: install, remove')
 
-    if args.mode == 'remove':
-        res = globals()[args.mode](args.extension_name, args.force, args.only)
-    elif args.mode == 'install':
-        res = globals()[args.mode](args.file_path, args.force)
-    else:
-        logger.error("%s mode is not found"%args.mode)
-        parser.print_help()
+    parser_install = subparsers.add_parser("install")
+    salome_pkg_install.add_arguments(parser_install)
+
+    parser_remove = subparsers.add_parser("remove")
+    salome_pkg_remove.add_arguments(parser_remove)
+
+    args = parser.parse_args()
+    args.func(args)
+
