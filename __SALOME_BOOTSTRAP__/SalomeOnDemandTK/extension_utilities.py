@@ -74,14 +74,15 @@ PREBUILD_EXT = 'pre_extension'
 
 EXTNAME_KEY = 'name'
 EXTVERSION_KEY = 'version'
+EXTOS_ID = "os_id"
 EXTDESCR_KEY = 'descr'
 EXTDEPENDSON_KEY = 'depends_on'
 EXTAUTHOR_KEY = 'author'
 EXTCOMPONENT_KEY = 'ext_components'
 EXTISGUI_KEY = 'salomegui'
 EXTSMOGULENAME_KEY = 'salomemodule_name'
-License_KEY = 'License'
-MODELVERSION_KEY = 'ModelVersion'
+License_KEY = 'license'
+MODELVERSION_KEY = 'modelversion'
 EXTSUFFIX_KEY = "suffix"
 EXTDEPENDSONREMOVE_KEY = "depends_on_removed"
 
