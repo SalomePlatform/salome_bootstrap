@@ -225,7 +225,7 @@ def dependency_tree(directory):
     installed in the given directory.
 
     Args:
-        directory - the given directory
+        directory - the given directory (this directory contain DFILES_DIR (ext_mng/metadata), this directory contain all salomexd files)
 
     Returns:
         A dictionary like that for extensions A, B, C, D and E:
