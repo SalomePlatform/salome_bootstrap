@@ -27,6 +27,11 @@ SET(BOOTSTRAP_SCRIPTS
   SalomeOnDemandTK/extension_utilities.py
   )
 
-INSTALL(PROGRAMS salome_pkg 
+SET(SALOME_PKG_DRIVER
+  salome_pkg
+  salome_pkg_install.py
+  salome_pkg_remove.py
+)
+INSTALL(PROGRAMS ${SALOME_PKG_DRIVER}
         DESTINATION ${SALOME_BOOTSTRAP})
 INSTALL(FILES ${BOOTSTRAP_SCRIPTS} DESTINATION ${SALOME_BOOTSTRAP}/SalomeOnDemandTK)
