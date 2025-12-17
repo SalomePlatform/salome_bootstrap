@@ -742,6 +742,7 @@ def list_dep_tobe_removed(salome_root,salomex_name, recursively = False):
     removed_ext_list = list(set(removed_ext_list))
 
     return removed_ext_list
+
 def update_runpath(binaries_path : list, old_new_paths : dict):
     """
     :param binaries_path: list of strings to exectables to patch runpathes
@@ -779,6 +780,25 @@ def update_runpath(binaries_path : list, old_new_paths : dict):
     except subprocess.CalledProcessError as e:
         # Catch errors from subprocess (e.g., chrpath failure)
         logger.error(f"Error while modifying RUNPATH: {e}")
+
+def remove_file_pattern_in_tree( module_dir : str, pattern : str ):
+    """
+    Docstring for remove_file_pattern_in_tree
+    """
+    import shutil
+    import fnmatch
+    for root, dirs, files in os.walk(module_dir, topdown=False):
+        for name in files:
+            if fnmatch.fnmatch(name, pattern):
+                file_path = os.path.join(root, name)
+                logger.debug( f"Remove {file_path!r} file from packaging" )
+                os.remove(file_path)
+
+        for name in dirs:
+            if fnmatch.fnmatch(name, pattern):
+                dir_path = os.path.join(root, name)
+                logger.debug( f"Remove {file_path!r} directory from packaging" )
+                shutil.rmtree(dir_path)
 
 def salometest_dir_correction(module_orig_dir):
     """
