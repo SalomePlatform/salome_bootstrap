@@ -417,7 +417,7 @@ def isvalid_dirname(dirname):
     return True
 
 
-def list_dependants(install_dir, salomex_name):
+def list_dependants(install_dir, salomex_name, visited = None):
     """
     Checks if we have installed extensions those depend on a given extension.
 
@@ -428,6 +428,14 @@ def list_dependants(install_dir, salomex_name):
     Returns:
         True if the given extension has dependants.
     """
+
+    if visited == None:
+        visited = set()
+
+    if salomex_name in visited:
+        return []
+
+    visited.add(salomex_name)
 
     logger.debug('Check if there are other extensions that depends on %s...', salomex_name)
     dependants = []
@@ -455,7 +463,7 @@ def list_dependants(install_dir, salomex_name):
         logger.debug('Followed extensions %s depend on %s',
             dependants, salomex_name)
     for ext in dependants:
-        recursivedependants = list_dependants(install_dir, ext)
+        recursivedependants = list_dependants(install_dir, ext, visited)
         if recursivedependants:
             dependants += recursivedependants
     dependants = list(set(dependants))
