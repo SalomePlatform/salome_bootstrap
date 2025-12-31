@@ -5,7 +5,7 @@ import argparse
 import os, sys, shutil
 
 
-from SalomeOnDemandTK.extension_utilities import logger
+from SalomeOnDemandTK.extension_utilities import logger, EXT_DFT_STORE_ZONE
 
 # get salome_appli_dir
 try:
@@ -14,7 +14,7 @@ except:
     salome_bootstrap_dir = os.path.dirname(os.path.realpath(__file__))
     salome_appli_dir = os.path.dirname(salome_bootstrap_dir)
 
-ext_pkg_dir = os.path.join(salome_appli_dir,"ext_pkg")
+ext_pkg_dir = os.path.join(salome_appli_dir, EXT_DFT_STORE_ZONE)
 
 #extname, force, only
 def remove(args):

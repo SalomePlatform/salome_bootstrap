@@ -56,6 +56,7 @@ logger = logging.getLogger()
 # version of extension metadata model
 ModelVersion = "1.0.0"
 
+EXT_DFT_STORE_ZONE = "ext_pkg"
 EXT_MNG_DIR = "ext_mng"
 DFILES_DIR = os.path.join(EXT_MNG_DIR,"metadata")
 CFILES_DIR = os.path.join(EXT_MNG_DIR,"control_files")
