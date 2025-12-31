@@ -218,27 +218,10 @@ def ext_size_str(install_dir, salomex_name, format_in_bytes=False):
     logger.debug('The size of %s: %s', salomex_name, size_str)
     return size_str
 
-
-def dependency_tree(directory):
-    r"""
-    Create a dependency tree for all salome extensions
-    installed in the given directory.
-
-    Args:
-        directory - the given directory (this directory contain DFILES_DIR (ext_mng/metadata), this directory contain all salomexd files)
-
-    Returns:
-        A dictionary like that for extensions A, B, C, D and E:
-          A
-         /|\
-        / B D
-        \/ \/
-        C   E
-
-        { 'A': ['B', 'C', 'D'], 'B': ['C', 'E'], 'C': [], 'D': ['E'], 'E': [] }.
+def dependency_tree_for_dev( salomexd_dir ):
     """
-
-    salomexd_dir = os.path.join(directory,DFILES_DIR)
+    Same than dependency_tree except that input is directory containing all salomexd files. Symetric to get_depends_on_list method
+    """
     logger.debug('Build dependency tree for extensions in %s', salomexd_dir)
 
     tree = {}
@@ -260,6 +243,28 @@ def dependency_tree(directory):
 
     logger.debug('Dependency tree: %s', tree)
     return tree
+
+def dependency_tree( directory ):
+    r"""
+    Create a dependency tree for all salome extensions
+    installed in the given directory.
+
+    Args:
+        directory - the given directory (this directory contain DFILES_DIR (ext_mng/metadata), this directory contain all salomexd files)
+
+    Returns:
+        A dictionary like that for extensions A, B, C, D and E:
+          A
+         /|\
+        / B D
+        \/ \/
+        C   E
+
+        { 'A': ['B', 'C', 'D'], 'B': ['C', 'E'], 'C': [], 'D': ['E'], 'E': [] }.
+    """
+
+    salomexd_dir = os.path.join(directory,DFILES_DIR)
+    return dependency_tree_for_dev( salomexd_dir )
 
 def ext_dependency_tree( salomexd_files_dir, ext_name ):
     r"""
