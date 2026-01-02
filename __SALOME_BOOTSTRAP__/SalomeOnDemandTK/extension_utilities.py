@@ -42,16 +42,29 @@ import importlib.util
 import fnmatch
 import re
 
-# Usually logging verbosity is set inside bin/runSalomeCommon.py when salome is starting.
-# Here we do just the same for a case if we call this package stand alone.
-FORMAT = '%(levelname)s : %(asctime)s : [%(filename)s:%(funcName)s:%(lineno)s] : %(message)s'
-SOD_DEBUG=os.getenv("SOD_DEBUG")
-if SOD_DEBUG:
-    logging.basicConfig(format=FORMAT, level=logging.DEBUG)
-else:
-    logging.basicConfig(format=FORMAT, level=logging.INFO)
+logger = None
 
-logger = logging.getLogger()
+def get_logger():
+    global logger
+    if logger is None:
+        # Usually logging verbosity is set inside bin/runSalomeCommon.py when salome is starting.
+        # Here we do just the same for a case if we call this package stand alone.
+        FORMAT = '%(levelname)s : %(asctime)s : [%(filename)s:%(funcName)s:%(lineno)s] : %(message)s'
+        SOD_DEBUG = os.getenv("SOD_DEBUG")
+        if SOD_DEBUG:
+            logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+        else:
+            logging.basicConfig(format=FORMAT, level=logging.INFO)
+        logger = logging.getLogger()
+    return logger
+
+def position_verbosity_level( verbosityLevel : str ):
+    verbosityMap = {"ERROR" : logging.ERROR, "WARNING" : logging.WARNING, "INFO" : logging.INFO, "DEBUG" : logging.DEBUG}
+    try:
+        zeLev = verbosityMap[ verbosityLevel ]
+    except Exception as e:
+        raise RuntimeError( f"positionVerbosityLevel Error : Possibilities are : {list( verbosityMap.keys() )}" ) from e
+    get_logger().setLevel( zeLev )
 
 # version of extension metadata model
 ModelVersion = "1.0.0"
@@ -105,14 +118,14 @@ def read_salomexd(file_path):
         A dictionary that represents the content of the salomexd file.
     """
 
-    logger.debug('Read salomexd file %s', file_path)
+    get_logger().debug('Read salomexd file %s', file_path)
 
     try:
         with open(file_path, 'r', encoding='UTF-8') as file:
             return json.load(file)
 
     except OSError:
-        logger.error(format_exc())
+        get_logger().error(format_exc())
         return {}
 
 
@@ -134,7 +147,7 @@ def override_salomexd(file_path, item):
     data = read_salomexd(file_path)
     for key in item:
         if key not in DKEY_LIST:
-            logger.warning('Key %s was not declared in DKEY_LIST'%key)
+            get_logger().warning('Key %s was not declared in DKEY_LIST'%key)
         else:   
             data[key] = item[key]
     create_salomexd(
@@ -160,10 +173,10 @@ def value_from_salomexd(file_path, key):
 
     file_content = read_salomexd(file_path)
     if key in file_content and file_content[key]:
-        logger.debug('Key: %s, value: %s', key, file_content[key])
+        get_logger().debug('Key: %s, value: %s', key, file_content[key])
         return file_content[key]
 
-    logger.debug('Cannot get a value for key %s in salomexd file %s', key, file_path)
+    get_logger().debug('Cannot get a value for key %s in salomexd file %s', key, file_path)
     return None
 
 def get_module_name(salome_root, salomex_name):
@@ -177,7 +190,7 @@ def get_module_name(salome_root, salomex_name):
     """
     module_name = ext_info_bykey(salome_root, salomex_name, EXTSMOGULENAME_KEY)
     if not module_name:
-        logger.debug(f'salomemodule_name is not declared in {salomex_name}.salomexd .')
+        get_logger().debug(f'salomemodule_name is not declared in {salomex_name}.salomexd .')
     return module_name
 
 def ext_info_bykey(salome_root, salomex_name, key):
@@ -214,13 +227,13 @@ def read_salomexb(file_path):
         corresponding salomex archive file.
     """
 
-    logger.debug('Read salomexb file %s', file_path)
+    get_logger().debug('Read salomexb file %s', file_path)
     try:
         with open(file_path, 'r', encoding='UTF-8') as file:
             return [line.rstrip() for line in file]
 
     except OSError:
-        logger.error(format_exc())
+        get_logger().error(format_exc())
         return []
 
 
@@ -264,7 +277,7 @@ def filter_to_regex(dir_path, filter_patterns):
                  SMESH/share/salome/resources/smesh/padderdata/ferraill.med
     """
 
-    logger.debug('Convert given filter to regex...')
+    get_logger().debug('Convert given filter to regex...')
 
     # On Windows, it converts forward slashes to backward slashes.
     norm_filter = [os.path.normpath(pat) for pat in filter_patterns]
@@ -276,7 +289,7 @@ def filter_to_regex(dir_path, filter_patterns):
         for pat
         in norm_filter])
 
-    logger.debug('Regex pattern: %s', regex_pattern)
+    get_logger().debug('Regex pattern: %s', regex_pattern)
 
     return regex_pattern
 
@@ -295,7 +308,7 @@ def list_files_filter(dir_path, filter_patterns):
         files_rel - a list of relative paths to selected files.
     """
 
-    logger.debug('Get list of files to add into archive...')
+    get_logger().debug('Get list of files to add into archive...')
 
     regex_pattern = filter_to_regex(dir_path, filter_patterns)
 
@@ -308,7 +321,7 @@ def list_files_filter(dir_path, filter_patterns):
             filename_rel = os.path.relpath(filename_abs, dir_path)
 
             if re.match(regex_pattern, filename_rel):
-                logger.debug('File name %s matches pattern', filename_rel)
+                get_logger().debug('File name %s matches pattern', filename_rel)
                 files_abs.append(filename_abs)
                 files_rel.append(filename_rel)
 
@@ -328,7 +341,7 @@ def list_files_ext(dir_path, ext):
         A list of absolute paths to selected files.
     """
 
-    logger.debug('Get list of files with extension %s...', ext)
+    get_logger().debug('Get list of files with extension %s...', ext)
 
     dot_ext = '.' + ext
     return [os.path.join(dir_path, f) for f in os.listdir(dir_path) if f.endswith(dot_ext)]
@@ -359,11 +372,11 @@ def isvalid_filename(filename, extension):
         True if the given filename is valid for given extension.
     """
 
-    logger.debug('Check if the filename %s exists and has an extension %s', filename, extension)
+    get_logger().debug('Check if the filename %s exists and has an extension %s', filename, extension)
 
     # First do we even have something to check here
     if filename == '' or extension == '':
-        logger.error('A filename and extension cannot be empty! Args: filename=%s, extension=%s',
+        get_logger().error('A filename and extension cannot be empty! Args: filename=%s, extension=%s',
             filename, extension)
         return False
 
@@ -371,7 +384,7 @@ def isvalid_filename(filename, extension):
     _, ext = os.path.splitext(filename)
     ext = ext.lstrip('.')
     if ext != extension:
-        logger.error('The filename %s doesnt have a valid extension! \
+        get_logger().error('The filename %s doesnt have a valid extension! \
             The valid extension must be: %s, but get: %s',
             filename, extension, ext)
         return False
@@ -379,15 +392,15 @@ def isvalid_filename(filename, extension):
     # Check if the file base name is not empty
     base_name = os.path.basename(filename)
     if base_name == '':
-        logger.error('The file name %s has an empty base name!', filename)
+        get_logger().error('The file name %s has an empty base name!', filename)
         return False
 
     # Check if a file with given filename exists
     if not os.path.isfile(filename):
-        logger.error('The filename %s is not an existing regular file!', filename)
+        get_logger().error('The filename %s is not an existing regular file!', filename)
         return False
 
-    logger.debug('Filename %s exists and has an extension %s', filename, extension)
+    get_logger().debug('Filename %s exists and has an extension %s', filename, extension)
     return True
 
 
@@ -402,19 +415,19 @@ def isvalid_dirname(dirname):
         True if the given dirname is valid.
     """
 
-    logger.debug('Check if the dirname %s exists', dirname)
+    get_logger().debug('Check if the dirname %s exists', dirname)
 
     # First do we even have something to check here
     if dirname == '':
-        logger.error('A dirname argument cannot be empty! dirname=%s', dirname)
+        get_logger().error('A dirname argument cannot be empty! dirname=%s', dirname)
         return False
 
     # Check if a file with given filename exists
     if not os.path.isdir(dirname):
-        logger.error('The dirname %s is not an existing regular file!', dirname)
+        get_logger().error('The dirname %s is not an existing regular file!', dirname)
         return False
 
-    logger.debug('Directory %s exists', dirname)
+    get_logger().debug('Directory %s exists', dirname)
     return True
 
 
@@ -438,7 +451,7 @@ def list_dependants(install_dir, salomex_name, visited = None):
 
     visited.add(salomex_name)
 
-    logger.debug('Check if there are other extensions that depends on %s...', salomex_name)
+    get_logger().debug('Check if there are other extensions that depends on %s...', salomex_name)
     dependants = []
     salomexd_files = list_files_ext(os.path.join(install_dir,DFILES_DIR), DFILE_EXT)
 
@@ -449,19 +462,19 @@ def list_dependants(install_dir, salomex_name, visited = None):
         if dependant_name == salomex_name:
             continue
 
-        logger.debug('Check dependencies for %s...', salomexd_file)
+        get_logger().debug('Check dependencies for %s...', salomexd_file)
         salomexd_content = read_salomexd(salomexd_file)
 
         if EXTDEPENDSON_KEY in salomexd_content and salomexd_content[EXTDEPENDSON_KEY]:
             depends_on = salomexd_content[EXTDEPENDSON_KEY]
             depends_on_no_version = [ext["name"] for ext in depends_on ]
-            logger.debug('List of dependencies: %s', depends_on_no_version)
+            get_logger().debug('List of dependencies: %s', depends_on_no_version)
 
             if salomex_name in depends_on_no_version:
                 dependants.append(dependant_name)
 
     if len(dependants) > 0:
-        logger.debug('Followed extensions %s depend on %s',
+        get_logger().debug('Followed extensions %s depend on %s',
             dependants, salomex_name)
     for ext in dependants:
         recursivedependants = list_dependants(install_dir, ext, visited)
@@ -497,13 +510,13 @@ def find_file(directory, file_name):
         Abs path if the file exist, otherwise None.
     """
 
-    logger.debug('Try to find %s file in %s...', file_name, directory)
+    get_logger().debug('Try to find %s file in %s...', file_name, directory)
     file = os.path.join(directory, file_name)
     if os.path.isfile(file):
-        logger.debug('File %s exists.', file)
+        get_logger().debug('File %s exists.', file)
         return file
 
-    logger.debug('File %s doesnt\'t exist. Return None.', file)
+    get_logger().debug('File %s doesnt\'t exist. Return None.', file)
     return None
 
 
@@ -584,19 +597,19 @@ def module_from_filename(filename):
 
     spec = importlib.util.spec_from_file_location(module_name, filename)
     if not spec:
-        logger.error('Could not get a spec for %s file!')
+        get_logger().error('Could not get a spec for %s file!')
         return None
 
     module = importlib.util.module_from_spec(spec)
     if not module:
-        logger.error('Could not get a module for %s file!')
+        get_logger().error('Could not get a module for %s file!')
         return None
 
     sys.modules[module_name] = module
 
-    logger.debug('Execute %s module', module_name)
+    get_logger().debug('Execute %s module', module_name)
     if not spec.loader:
-        logger.error('spec.loader is None for %s file!')
+        get_logger().error('spec.loader is None for %s file!')
         return None
 
     spec.loader.exec_module(module)
@@ -616,7 +629,7 @@ def get_app_root(levels_up=5):
     """
 
     app_root = str(Path(__file__).resolve().parents[levels_up - 1])
-    logger.debug('App root: %s', app_root)
+    get_logger().debug('App root: %s', app_root)
 
     return app_root
 
@@ -636,18 +649,18 @@ def check_if_installed(install_dir, salomex_name):
         salomexd, salomexc file names.
     """
 
-    logger.debug('Check if %s extension is installed in %s...', salomex_name, install_dir)
+    get_logger().debug('Check if %s extension is installed in %s...', salomex_name, install_dir)
 
     salomexd = find_salomexd(install_dir, salomex_name)
     if not salomexd:
-        logger.debug('Extension has been already removed or %s file was deleted by mistake. '
+        get_logger().debug('Extension has been already removed or %s file was deleted by mistake. '
             'In the former case we can use %s file to clean up.', DFILE_EXT, CFILE_EXT)
 
     salomexc = find_salomexc(install_dir, salomex_name)
     if salomexc:
-        logger.debug('An extension %s IS installed.', salomex_name)
+        get_logger().debug('An extension %s IS installed.', salomex_name)
     else:
-        logger.debug('An extension %s IS NOT installed.', salomex_name)
+        get_logger().debug('An extension %s IS NOT installed.', salomex_name)
 
     return salomexd, salomexc
 
@@ -735,7 +748,7 @@ def list_dep_tobe_removed(salome_root,salomex_name, recursively = False):
     """
     ext_list = ext_info_bykey(salome_root, salomex_name, EXTDEPENDSONREMOVE_KEY)
     if type(ext_list) != list:
-        logger.debug(f'{EXTDEPENDSONREMOVE_KEY} is not well declared as list in {salomex_name}.salomexd .')
+        get_logger().debug(f'{EXTDEPENDSONREMOVE_KEY} is not well declared as list in {salomex_name}.salomexd .')
         return None
     if not ext_list:
         return None
@@ -785,10 +798,10 @@ def update_runpath(binaries_path : list, old_new_paths : dict):
             subprocess.run(["chrpath", "-r", new_rpath, bin_path], check=True)
 
     except FileNotFoundError as e:
-        logger.error(e)
+        get_logger().error(e)
     except subprocess.CalledProcessError as e:
         # Catch errors from subprocess (e.g., chrpath failure)
-        logger.error(f"Error while modifying RUNPATH: {e}")
+        get_logger().error(f"Error while modifying RUNPATH: {e}")
 
 def remove_file_pattern_in_tree( module_dir : str, pattern : str ):
     """
@@ -800,13 +813,13 @@ def remove_file_pattern_in_tree( module_dir : str, pattern : str ):
         for name in files:
             if fnmatch.fnmatch(name, pattern):
                 file_path = os.path.join(root, name)
-                logger.debug( f"Remove {file_path!r} file from packaging" )
+                get_logger().debug( f"Remove {file_path!r} file from packaging" )
                 os.remove(file_path)
 
         for name in dirs:
             if fnmatch.fnmatch(name, pattern):
                 dir_path = os.path.join(root, name)
-                logger.debug( f"Remove {file_path!r} directory from packaging" )
+                get_logger().debug( f"Remove {file_path!r} directory from packaging" )
                 shutil.rmtree(dir_path)
 
 def salometest_dir_correction(module_orig_dir):
@@ -820,12 +833,12 @@ def salometest_dir_correction(module_orig_dir):
     mod_name = os.path.basename(module_orig_dir)
     test_dir = os.path.join(module_orig_dir,"bin","salome","test")
     if not os.path.isdir(test_dir):
-        logger.debug(f"salome test directory is not found in {module_orig_dir}")
+        get_logger().debug(f"salome test directory is not found in {module_orig_dir}")
         return
 
     contain_test_dir = glob.glob(os.path.join(test_dir,"*"))
     if len(contain_test_dir) == 1 and os.path.isdir(contain_test_dir[0]):
-        logger.debug(f"salome test directory of {mod_name} contain only one folder. Appending a sub-testfolder is no need in this case")
+        get_logger().debug(f"salome test directory of {mod_name} contain only one folder. Appending a sub-testfolder is no need in this case")
         return
     tmpdir = TemporaryDirectory()
     correct_module_dir = tmpdir.name

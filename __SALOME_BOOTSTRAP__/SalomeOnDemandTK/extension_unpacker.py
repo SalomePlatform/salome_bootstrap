@@ -39,7 +39,7 @@ from traceback import format_exc
 
 import SalomeOnDemandTK.extension_remover as extension_remover
 
-from .extension_utilities import logger, \
+from .extension_utilities import get_logger, \
     DFILE_EXT, ARCFILE_EXT, EXTDEPENDSON_KEY, INSTALLFILE_EXT, EXTVERSION_KEY, DFILES_DIR, POSTINSTALL_DIR, \
     isvalid_filename, isvalid_dirname, ext_info_bykey, \
     get_app_root, check_if_installed, comp_interaction_treat, get_module_name, \
@@ -62,7 +62,7 @@ def unpack_salomex(salome_root, salomex, remove_old_pkg):
         True if an ext was successfully unpacked.
     """
 
-    logger.debug('Starting unpack a salome extension file')
+    get_logger().debug('Starting unpack a salome extension file')
 
     # Check if provided filenames are valid
     if  not isvalid_dirname(salome_root) or \
@@ -74,7 +74,7 @@ def unpack_salomex(salome_root, salomex, remove_old_pkg):
 
             # Read a list of dependencies, so let's check if they are present in salome_root
             ext_file_name, _ = os.path.splitext(os.path.basename(salomex))
-            logger.debug('Try to read %s \'s %s file...', ext_file_name, DFILE_EXT)
+            get_logger().debug('Try to read %s \'s %s file...', ext_file_name, DFILE_EXT)
             # Get salomexd file
             for member in ext.getmembers():
                 if member.name.endswith(DFILE_EXT):
@@ -89,18 +89,18 @@ def unpack_salomex(salome_root, salomex, remove_old_pkg):
             _, salomexc = check_if_installed(salome_root, salome_ext_name)
             if salomexc:
                 if remove_old_pkg:
-                    logger.debug('%s is already installed on your application. It will be removed forcibly first to be able to reinstalled', salome_ext_name)
+                    get_logger().debug('%s is already installed on your application. It will be removed forcibly first to be able to reinstalled', salome_ext_name)
                     # For now in the case of reinstalling en extension, we pre-remove only target extension and not its depends_on_removed.
                     # That help avoid the conflicts when we reinstall a new extension
                     # For exemple:
                     # In the case of updating of SMESH-GUI, we must remove it first. If its depends_on_removed are removed too and these extensions are depends_on of SMESH-GUI too, we can not reinstall another SMESH-GUI because its prerequisites are no longer installed
                     extension_remover.remove_salomex(salome_root, salome_ext_name, extension_remover.AtRemoveAskerForce(False), force = True)
                 else:
-                    logger.warning('%s is already installed on your application. To reinstall an extension you need to remove it first!', salome_ext_name)
+                    get_logger().warning('%s is already installed on your application. To reinstall an extension you need to remove it first!', salome_ext_name)
                     return None
 
             salomexd_content = json.loads(salomexd_file)
-            logger.debug('Check dependencies...')
+            get_logger().debug('Check dependencies...')
             if EXTDEPENDSON_KEY in salomexd_content and salomexd_content[EXTDEPENDSON_KEY]:
                 depends_on = salomexd_content[EXTDEPENDSON_KEY]
 
@@ -108,32 +108,32 @@ def unpack_salomex(salome_root, salomex, remove_old_pkg):
                 for depends in depends_on:
                     depends_filename = os.path.join(salome_root, DFILES_DIR, depends[EXTDEPNAME_KEY] + '.' + DFILE_EXT)
                     if not os.path.isfile(depends_filename):
-                        logger.error('Cannot find %s for a module that extension depends on!',
+                        get_logger().error('Cannot find %s for a module that extension depends on!',
                             depends_filename)
                         raise SalomeBootStrapInstallerException("Prequisite package missing!!")
                     else:
                         installed_version = value_from_salomexd(depends_filename, EXTVERSION_KEY)
                         if installed_version != depends[EXTDEPVERSION_KEY]:
-                            logger.error('Installed version of %s is %s. But we need %s', depends[EXTDEPNAME_KEY], installed_version, depends[EXTDEPVERSION_KEY])
+                            get_logger().error('Installed version of %s is %s. But we need %s', depends[EXTDEPNAME_KEY], installed_version, depends[EXTDEPVERSION_KEY])
                             raise SalomeBootStrapInstallerException("Incompatible prerequisite version !!")
 
 
             # Check model version of extension. Its version must be the same with salome bootstrap version
             if salomexd_content[MODELVERSION_KEY] != ModelVersion:
-                logger.error('Extension model version is not compatible \n\
+                get_logger().error('Extension model version is not compatible \n\
                         %s ext-model version: %s \n\
                         SALOME ext-model version: %s',
                         salome_ext_name, salomexd_content[MODELVERSION_KEY], ModelVersion)
                 raise SalomeBootStrapInstallerException("Incompatible Model version !!")
 
             # Unpack archive in the salome_root
-            logger.debug('Extract all the files into %s...', salome_root)
+            get_logger().debug('Extract all the files into %s...', salome_root)
             ext.extractall(salome_root)
 
-            logger.debug('SALOME extension %s was installed.', salome_ext_name)
+            get_logger().debug('SALOME extension %s was installed.', salome_ext_name)
 
     except (OSError, KeyError):
-        logger.error(format_exc())
+        get_logger().error(format_exc())
         return None
 
     return salome_ext_name
@@ -150,13 +150,13 @@ def install_salomex(salomex, remove_old_pkg = False):
         salome module name or ext name if salome module name is not declared to be activated later or None if the function failed.
     """
 
-    logger.debug('Starting install a salome extension from %s', salomex)
+    get_logger().debug('Starting install a salome extension from %s', salomex)
 
     # Check if we have the salome root path
     app_root = os.environ.get('SALOME_APPLICATION_DIR', '')
     if not app_root:
         # It should be set on the app start, but leave it here to run as a standalone script
-        logger.warning(
+        get_logger().warning(
             'Env var SALOME_APPLICATION_DIR is not set! Try to set it going up from cur location.')
         app_root = get_app_root()
 
@@ -172,7 +172,7 @@ def install_salomex(salomex, remove_old_pkg = False):
         os.chmod(ext_post_install_script, 0o755)
         ret = os.system(ext_post_install_script)
         if ret != 0:
-            logger.error("Post installation is failed")
+            get_logger().error("Post installation is failed")
             return 1
         #os.remove(ext_post_install_script)
 
@@ -187,5 +187,5 @@ if __name__ == '__main__':
     elif len(sys.argv) == 2:
         install_salomex(sys.argv[1])
     else:
-        logger.error('You must provide all the arguments!')
-        logger.info(unpack_salomex.__doc__)
+        get_logger().error('You must provide all the arguments!')
+        get_logger().info(unpack_salomex.__doc__)

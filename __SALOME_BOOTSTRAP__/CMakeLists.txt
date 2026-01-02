@@ -23,6 +23,7 @@ SET(BOOTSTRAP_SCRIPTS
   ${CMAKE_CURRENT_BINARY_DIR}/SalomeOnDemandTK/__init__.py
   SalomeOnDemandTK/extension_unpacker.py
   SalomeOnDemandTK/extension_query.py
+  SalomeOnDemandTK/extension_query_impl.py
   SalomeOnDemandTK/extension_remover.py
   SalomeOnDemandTK/extension_utilities.py
   )

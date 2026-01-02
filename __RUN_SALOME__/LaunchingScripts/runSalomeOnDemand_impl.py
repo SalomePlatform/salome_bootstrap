@@ -34,7 +34,7 @@ import salomeContext
 from SalomeOnDemandTK.extension_utilities import logger, \
     find_envpy, module_from_filename, get_app_root, find_file, \
     SALOME_EXTDIR
-from SalomeOnDemandTK.extension_query import ext_by_dependants, dependency_tree
+from SalomeOnDemandTK.extension_query_impl import ext_by_dependants, dependency_tree
 
 def set_selext_env(install_dir, salomex_name, context=None):
     """
