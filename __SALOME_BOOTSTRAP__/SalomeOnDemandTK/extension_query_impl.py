@@ -38,7 +38,7 @@ import os
 import sys
 from traceback import format_exc
 
-from extension_utilities import get_logger, \
+from SalomeOnDemandTK.extension_utilities import get_logger, \
     SALOME_EXTDIR, DFILE_EXT, EXTDEPENDSON_KEY, EXTDESCR_KEY, EXTAUTHOR_KEY, EXTCOMPONENT_KEY, DFILES_DIR, EXTVERSION_KEY, EXTSUFFIX_KEY, \
     isvalid_dirname, find_salomexc, list_files_ext, read_salomexd, comp_interaction_treat
 
