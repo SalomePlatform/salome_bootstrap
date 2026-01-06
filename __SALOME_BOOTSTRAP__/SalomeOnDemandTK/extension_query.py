@@ -20,8 +20,8 @@
 #
 
 from pathlib import Path
-from extension_utilities import get_logger, position_verbosity_level
-from extension_query_impl import dir_size_str, ext_by_dependants_of_application, ext_info_dict, ext_size_str
+from SalomeOnDemandTK.extension_utilities import get_logger, position_verbosity_level
+from SalomeOnDemandTK.extension_query_impl import dir_size_str, ext_by_dependants_of_application, ext_info_dict, ext_size_str
 
 def readableString( dico : str ) -> str:
     import json
