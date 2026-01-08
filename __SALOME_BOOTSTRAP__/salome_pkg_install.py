@@ -4,7 +4,7 @@ import argparse
 import os, sys, shutil
 
 
-from SalomeOnDemandTK.extension_utilities import logger, EXT_DFT_STORE_ZONE
+from SalomeOnDemandTK.extension_utilities import get_logger, EXT_DFT_STORE_ZONE
 
 # get salome_appli_dir
 try:
@@ -24,12 +24,12 @@ def install(args):
     ext_pkg_name = os.path.basename(ext_file_path)
 
     if not os.path.isfile(ext_file_path):
-        logger.error( "Extension package {} does not exist.\nPlease be sure that you have this package in {}"
+        get_logger().error( "Extension package {} does not exist.\nPlease be sure that you have this package in {}"
         .format(ext_pkg_name, ext_file_path) )
         return 1
 
     # Unpack the new extension
-    logger.info("Install %s"%ext_pkg_name)
+    get_logger().info("Install %s"%ext_pkg_name)
     os.environ["SALOME_APPLICATION_DIR"] = salome_appli_dir
     import SalomeOnDemandTK.extension_unpacker as extension_unpacker
     extension_unpacker.install_salomex(ext_file_path, force)
