@@ -39,8 +39,8 @@ import sys
 from traceback import format_exc
 
 from SalomeOnDemandTK.extension_utilities import get_logger, \
-    SALOME_EXTDIR, DFILE_EXT, EXTDEPENDSON_KEY, EXTDESCR_KEY, EXTAUTHOR_KEY, EXTCOMPONENT_KEY, DFILES_DIR, EXTVERSION_KEY, EXTSUFFIX_KEY, \
-    isvalid_dirname, find_salomexc, list_files_ext, read_salomexd, comp_interaction_treat
+    SALOME_EXTDIR, DFILE_EXT, EXTDEPENDSON_KEY, EXTDESCR_KEY, EXTAUTHOR_KEY, DFILES_DIR, EXTVERSION_KEY, EXTSUFFIX_KEY, \
+    isvalid_dirname, find_salomexc, list_files_ext, read_salomexd
 
 
 def size_to_str(size, format_in_bytes=False) -> str:
@@ -355,7 +355,7 @@ def ext_info_list(directory):
         directory - the given ext install directory.
 
     Returns:
-        A dictionary {name: [descr, author, components, size, version, suffix]}.
+        A dictionary {name: [descr, author, size, version, suffix]}.
     """
 
     info_dict = ext_info_dict(directory)
@@ -372,11 +372,6 @@ def ext_info_list(directory):
         if EXTAUTHOR_KEY in info_dict[ext_name]:
             author = info_dict[ext_name][EXTAUTHOR_KEY]
             get_logger().debug('author: %s', author)
-
-        components = ''
-        if EXTCOMPONENT_KEY in info_dict[ext_name]:
-            components = ', '.join(comp_interaction_treat(info_dict[ext_name][EXTCOMPONENT_KEY]))
-            get_logger().debug('components: %s', components)
 
         version = ''
         if EXTVERSION_KEY in info_dict[ext_name]:
@@ -396,7 +391,7 @@ def ext_info_list(directory):
             get_logger().error(f'size of {ext_name} is not received')
             return None
 
-        ext_info[ext_name] = [descr, author, components, size, version, suffix]
+        ext_info[ext_name] = [descr, author, size, version, suffix]
 
     get_logger().debug('Installed extensions info: %s', ext_info)
     return ext_info

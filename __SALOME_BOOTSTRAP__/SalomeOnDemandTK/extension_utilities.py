@@ -92,7 +92,6 @@ EXTOS_ID = "os_id"
 EXTDESCR_KEY = 'descr'
 EXTDEPENDSON_KEY = 'depends_on'
 EXTAUTHOR_KEY = 'author'
-EXTCOMPONENT_KEY = 'ext_components'
 EXTISGUI_KEY = 'salomegui'
 EXTSMOGULENAME_KEY = 'salomemodule_name'
 License_KEY = 'license'
@@ -102,8 +101,7 @@ EXTDEPENDSONREMOVE_KEY = "depends_on_removed"
 
 EXTDEPNAME_KEY = 'name'
 EXTDEPVERSION_KEY = 'version'
-DKEY_LIST = [ EXTNAME_KEY, EXTDESCR_KEY, EXTDEPENDSON_KEY, EXTAUTHOR_KEY, EXTCOMPONENT_KEY, EXTSMOGULENAME_KEY, EXTISGUI_KEY ]
-ITERACTIVE_EXTCOMPONENT_KEY = 'salome_interactive'
+DKEY_LIST = [ EXTNAME_KEY, EXTDESCR_KEY, EXTDEPENDSON_KEY, EXTAUTHOR_KEY, EXTSMOGULENAME_KEY, EXTISGUI_KEY ]
 
 def read_salomexd(file_path):
     """
@@ -127,37 +125,6 @@ def read_salomexd(file_path):
     except OSError:
         get_logger().error(format_exc())
         return {}
-
-
-def override_salomexd(file_path, item):
-    """
-    Override a salomexd file
-
-    Args:
-        file_path - the file_path of salomexd file
-        item - A dictionary containing all item modified
-               Key of these item must be declared in DKEY_LIST
-
-    Returns:
-        None
-    """
-    file_dir = os.path.dirname(file_path)
-    if file_dir:
-        os.chdir(file_dir)
-    data = read_salomexd(file_path)
-    for key in item:
-        if key not in DKEY_LIST:
-            get_logger().warning('Key %s was not declared in DKEY_LIST'%key)
-        else:   
-            data[key] = item[key]
-    create_salomexd(
-                    data[EXTNAME_KEY],
-                    descr = data[EXTNAME_KEY],
-                    depends_on = data[EXTDEPENDSON_KEY],
-                    author = data[EXTAUTHOR_KEY],
-                    components = data[EXTCOMPONENT_KEY]
-                    )
-
 
 def value_from_salomexd(file_path, key):
     """
@@ -663,34 +630,6 @@ def check_if_installed(install_dir, salomex_name):
         get_logger().debug('An extension %s IS NOT installed.', salomex_name)
 
     return salomexd, salomexc
-
-
-def comp_interaction_treat(components):
-    """
-    Convert a dict of modules groups into dict containing modules names as key and its interactive_mode as value
-    All the modules belong group salome_interactive has interactive_mode == True, so it has salome gui.
-
-    Args:
-        A dict {string: string list} containing group name and modules lists associated
-
-    Returns:
-        A dict {string, bool} containing modules name and interative mode associated
-    """
-    interactive = False
-    dict_treated = {}
-    if type(components) == dict:
-        for group in components:
-            if group != ITERACTIVE_EXTCOMPONENT_KEY:
-                interactive = False
-            else:
-                interactive = True
-            for component in components[group]:
-                dict_treated[component] = interactive
-    elif type(components) == list:
-        interactive = True
-        for component in components:
-            dict_treated[component] = interactive
-    return dict_treated
 
 def findReplace(directory, find, replace, filePattern):
     for path, dirs, files in os.walk(os.path.abspath(directory)):

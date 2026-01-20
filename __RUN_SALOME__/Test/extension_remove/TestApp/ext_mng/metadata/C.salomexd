@@ -6,7 +6,6 @@
     "salomemodule_name": "C",
     "depends_on": [],
     "author": "SALOME Team",
-    "ext_components": [],
     "ModelVersion": "1.0.0",
     "License": "lgpl_2.1",
     "suffix": 1,

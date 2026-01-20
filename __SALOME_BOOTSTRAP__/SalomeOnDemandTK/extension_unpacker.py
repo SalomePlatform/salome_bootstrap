@@ -42,7 +42,7 @@ import SalomeOnDemandTK.extension_remover as extension_remover
 from .extension_utilities import get_logger, \
     DFILE_EXT, ARCFILE_EXT, EXTDEPENDSON_KEY, INSTALLFILE_EXT, EXTVERSION_KEY, DFILES_DIR, POSTINSTALL_DIR, \
     isvalid_filename, isvalid_dirname, ext_info_bykey, \
-    get_app_root, check_if_installed, comp_interaction_treat, get_module_name, \
+    get_app_root, check_if_installed, get_module_name, \
     EXTISGUI_KEY, MODELVERSION_KEY, value_from_salomexd, EXTDEPNAME_KEY, EXTDEPVERSION_KEY, \
     ModelVersion
 
