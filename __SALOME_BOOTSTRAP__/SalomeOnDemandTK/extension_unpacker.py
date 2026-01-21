@@ -158,7 +158,7 @@ def install_salomex(salomex, remove_old_pkg = False):
         # It should be set on the app start, but leave it here to run as a standalone script
         get_logger().warning(
             'Env var SALOME_APPLICATION_DIR is not set! Try to set it going up from cur location.')
-        app_root = get_app_root()
+        app_root = get_app_root(3)
 
     # Unpack an archive
     salome_ext_name = unpack_salomex(app_root, salomex, remove_old_pkg)
