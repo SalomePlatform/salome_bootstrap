@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#!/usr/bin/env python3
 import os, shutil
 import glob
 from pathlib import Path
