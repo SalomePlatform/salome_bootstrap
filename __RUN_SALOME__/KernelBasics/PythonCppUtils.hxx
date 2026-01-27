@@ -64,3 +64,27 @@ public:
   AutoPyYielder() { _save = PyEval_SaveThread(); }
   ~AutoPyYielder() { PyEval_RestoreThread(_save); }
 };
+
+class PyErrorGuard
+{
+public:
+    explicit PyErrorGuard(bool print = false): _print(print) { }
+    ~PyErrorGuard()
+    {
+      if( PyErr_Occurred() )
+      {
+        if( _print )
+        {
+          PyErr_Print();
+        }
+        else
+        {
+          PyErr_Clear();
+        }
+      }
+    }
+    PyErrorGuard(const PyErrorGuard&) = delete;
+    PyErrorGuard& operator=(const PyErrorGuard&) = delete;
+private:
+    bool _print;
+};
