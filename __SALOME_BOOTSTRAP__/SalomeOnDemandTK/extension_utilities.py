@@ -75,6 +75,7 @@ DFILES_DIR = os.path.join(EXT_MNG_DIR,"metadata")
 CFILES_DIR = os.path.join(EXT_MNG_DIR,"control_files")
 ENVFILES_DIR = os.path.join(EXT_MNG_DIR,"env")
 POSTINSTALL_DIR = os.path.join(EXT_MNG_DIR,"postinstall")
+CONFIGINFO_DIR = os.path.join(EXT_MNG_DIR,"config_info")
 
 SALOME_EXTDIR = '__SALOME_EXT__'
 ARCFILE_EXT = 'salomex'
@@ -85,6 +86,9 @@ PYFILE_EXT = 'py'
 ENVPYFILE_SUF = '_env.py'
 INSTALLFILE_EXT = 'post_install'
 PREBUILD_EXT = 'pre_extension'
+GETSHA1_EXT = '_get_sha1.py'
+MODSHA1_KEY = 'softwareunit'
+BUILDTOOLSHA1_KEY = 'buildtool'
 
 EXTNAME_KEY = 'name'
 EXTVERSION_KEY = 'version'

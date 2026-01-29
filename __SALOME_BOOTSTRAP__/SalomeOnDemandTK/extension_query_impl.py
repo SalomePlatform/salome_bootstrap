@@ -36,10 +36,13 @@ and generate a dependency tree.
 
 import os
 import sys
+from pathlib import Path
 from traceback import format_exc
 
 from SalomeOnDemandTK.extension_utilities import get_logger, \
-    SALOME_EXTDIR, DFILE_EXT, EXTDEPENDSON_KEY, EXTDESCR_KEY, EXTAUTHOR_KEY, DFILES_DIR, EXTVERSION_KEY, EXTSUFFIX_KEY, \
+    SALOME_EXTDIR, DFILE_EXT, EXTDEPENDSON_KEY, EXTDESCR_KEY, EXTAUTHOR_KEY, \
+    DFILES_DIR, EXTVERSION_KEY, EXTSUFFIX_KEY, CONFIGINFO_DIR, GETSHA1_EXT, \
+    MODSHA1_KEY, BUILDTOOLSHA1_KEY, \
     isvalid_dirname, find_salomexc, list_files_ext, read_salomexd
 
 
@@ -615,3 +618,61 @@ def get_ext_version_release( ext_name ):
     except Exception:
         pass
     return None
+
+def getSha1(salomeapp_dir):
+    """
+    """
+    sha1_info = {}
+    from importlib.machinery import SourceFileLoader
+    configinfo_dir = Path(salomeapp_dir) / CONFIGINFO_DIR
+
+    salomexd_dir = Path(salomeapp_dir) / DFILES_DIR
+    salomexd_files = list_files_ext(salomexd_dir, DFILE_EXT)
+
+    for xdfile in salomexd_files:
+        sha1_info_el = {}
+        sha1_info_el[MODSHA1_KEY] = {}
+        sha1_info_el[BUILDTOOLSHA1_KEY] = {}
+        ext_name = Path(xdfile).stem
+        # Check if main existe
+        try:
+            sha1file_path = configinfo_dir / f"{ext_name}{GETSHA1_EXT}"
+            sha1file = str(sha1file_path)
+            if not sha1file_path.is_file:
+                raise OSError(f"sha1file_path of extension {ext_name} is not found: {sha1file}")
+            get_logger().debug(f"get sha1 info of {ext_name}")
+            # Load the script as a Python module
+            # SourceFileLoader bypasses file extension validation
+            loader = SourceFileLoader("getSha1", sha1file)
+
+            # Load and execute the module in memory
+            module = loader.load_module()
+
+            # Load modules sha1
+            modules_sha1_func = getattr(module, MODSHA1_KEY, None)
+            if not callable(modules_sha1_func):
+                raise AttributeError(f"{str(sha1file)} does not define a callable modules_sha1()")
+            # modules_sha1 is a dict containing sha1 of all software units in current extension
+            modules_sha1 = modules_sha1_func()
+            if not modules_sha1:
+                raise ValueError(f"Can not get modules sha1 of extension {ext_name}")
+
+            for mod,sha1 in modules_sha1.items():
+                sha1_info_el[MODSHA1_KEY][mod] = sha1
+
+            # Load buildtool sha1 (scbi/sat)
+            buildtool_sha1_func = getattr(module, BUILDTOOLSHA1_KEY, None)
+            buildtool_sha1 = {}
+            if callable(buildtool_sha1_func):
+                buildtool_sha1 = buildtool_sha1_func()
+                if not buildtool_sha1:
+                    buildtool_sha1 = {}
+            sha1_info_el[BUILDTOOLSHA1_KEY] = buildtool_sha1
+
+        except Exception as e:
+            get_logger().debug(f"Can not get sha1_collection (modules and buildtool) of extension {ext_name}: {e}")
+            sha1_info_el = {}
+
+        sha1_info[ext_name] = sha1_info_el
+
+    return sha1_info
