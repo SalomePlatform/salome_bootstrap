@@ -36,13 +36,14 @@ and generate a dependency tree.
 
 import os
 import sys
+import json
 from pathlib import Path
 from traceback import format_exc
 
 from SalomeOnDemandTK.extension_utilities import get_logger, \
     SALOME_EXTDIR, DFILE_EXT, EXTDEPENDSON_KEY, EXTDESCR_KEY, EXTAUTHOR_KEY, \
     DFILES_DIR, EXTVERSION_KEY, EXTSUFFIX_KEY, CONFIGINFO_DIR, GETSHA1_EXT, \
-    MODSHA1_KEY, BUILDTOOLSHA1_KEY, \
+    MODSHA1_KEY, BUILDTOOLSHA1_KEY, sha1buildtool_file, \
     isvalid_dirname, find_salomexc, list_files_ext, read_salomexd
 
 
@@ -660,13 +661,7 @@ def getSha1(salomeapp_dir):
             for mod,sha1 in modules_sha1.items():
                 sha1_info_el[MODSHA1_KEY][mod] = sha1
 
-            # Load buildtool sha1 (scbi/sat)
-            buildtool_sha1_func = getattr(module, BUILDTOOLSHA1_KEY, None)
-            buildtool_sha1 = {}
-            if callable(buildtool_sha1_func):
-                buildtool_sha1 = buildtool_sha1_func()
-                if not buildtool_sha1:
-                    buildtool_sha1 = {}
+            buildtool_sha1 = loadBuilderToolSha1fromJson(ext_name, salomeapp_dir)
             sha1_info_el[BUILDTOOLSHA1_KEY] = buildtool_sha1
 
         except Exception as e:
@@ -676,3 +671,12 @@ def getSha1(salomeapp_dir):
         sha1_info[ext_name] = sha1_info_el
 
     return sha1_info
+
+def loadBuilderToolSha1fromJson(ext_name, root_dir = os.getenv("SALOME_APPLICATION_DIR")):
+    buildtooljson = Path(root_dir) / CONFIGINFO_DIR / f"{ext_name}{sha1buildtool_file}"
+    try:
+        with open(buildtooljson, "r", encoding='UTF-8') as f:
+            return json.load(f)
+    except OSError:
+        get_logger().error(format_exc())
+        return {}

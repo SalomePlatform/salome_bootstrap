@@ -86,9 +86,12 @@ PYFILE_EXT = 'py'
 ENVPYFILE_SUF = '_env.py'
 INSTALLFILE_EXT = 'post_install'
 PREBUILD_EXT = 'pre_extension'
+
 GETSHA1_EXT = '_get_sha1.py'
 MODSHA1_KEY = 'softwareunit'
 BUILDTOOLSHA1_KEY = 'buildtool'
+sha1pool_file = f'_{MODSHA1_KEY}.json'
+sha1buildtool_file = f"_{BUILDTOOLSHA1_KEY}.json"
 
 EXTNAME_KEY = 'name'
 EXTVERSION_KEY = 'version'
