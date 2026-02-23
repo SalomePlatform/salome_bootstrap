@@ -3,7 +3,7 @@ import os, shutil
 import glob
 from pathlib import Path
 
-from SalomeOnDemandTK.extension_utilities import logger
+from SalomeOnDemandTK.extension_utilities import get_logger
 from SalomeOnDemandTK.extension_remover import remove_salomex, AtRemoveAskerForce
 extension_list = ["A","B","C","D","E","F"]
 """
@@ -48,7 +48,7 @@ def runtest(testnumber, removed_ext, ref_exts_tobe_removed):
 
     print(f"Reference list of removed extensions:{ref_exts_tobe_removed}")
     print(f"Reference list of remaining extensions:{ref_exts_remaining_extension}")
-    logger.info(f"Remove {removed_ext}")
+    get_logger().info(f"Remove {removed_ext}")
     exts_tobe_removed = remove_salomex(install_dir, removed_ext, AtRemoveAskerForce(True), False)
 
     # Check contain of exts_tobe_removed
