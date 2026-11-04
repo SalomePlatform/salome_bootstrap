@@ -156,8 +156,15 @@ INSTALL(PROGRAMS salome
         DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${PROJECT_BINARY_DIR}/ext_mng DESTINATION ${CMAKE_INSTALL_PREFIX})
 
-# macOS: relative rpaths (@loader_path) at the end of the installation.
-# Must stay the last ADD_SUBDIRECTORY (see KERNEL/postinstall).
+# macOS: relative rpaths (@loader_path) at the end of the installation, once all
+# the binaries are installed. With CMP0082 NEW, the install rules of the
+# ADD_SUBDIRECTORY() calls run where they are declared, so this rule, the last
+# one of the top-level directory, runs after those of __RUN_SALOME__ and
+# __SALOME_BOOTSTRAP__ (with OLD, the top-level rules run first).
+# The INSTALL_RPATH "$ORIGIN..." of the targets resolve nothing on macOS: dyld
+# does not know $ORIGIN (_KernelBasis.so: "Library not loaded: @rpath/libKERNELBasics.dylib").
 IF(APPLE)
-  ADD_SUBDIRECTORY(postinstall)
+  CMAKE_POLICY(SET CMP0082 NEW)
+  INCLUDE(${CONFIGURATION_ROOT_DIR}/cmake/ConfigureRPathPostEx.cmake)
+  CONFIGURE_RPATH_POST_INSTALL("${ABS_APPLI_PATH}")
 ENDIF(APPLE)
