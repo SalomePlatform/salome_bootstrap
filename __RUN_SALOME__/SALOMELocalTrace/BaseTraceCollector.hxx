@@ -31,7 +31,12 @@
 #include "SALOME_LocalTrace.hxx"
 
 #include <pthread.h>
+#if defined(__APPLE__)
+// macOS: unnamed POSIX semaphores (sem_init) are not implemented
+#include <dispatch/dispatch.h>
+#else
 #include <semaphore.h>
+#endif
 
 //! See derived Classes in SALOMELocalTrace for usage without CORBA,
 //! see derived Classes in SALOMETraceCollector for usage with CORBA.
@@ -48,7 +53,11 @@ class SALOMELOCALTRACE_EXPORT BaseTraceCollector
   static BaseTraceCollector* _singleton;
   static pthread_mutex_t _singletonMutex;
   static pthread_t* _threadId;
+#if defined(__APPLE__)
+  static dispatch_semaphore_t _sem;
+#else
   static sem_t _sem;
+#endif
 };
 
 #endif

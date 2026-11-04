@@ -60,12 +60,22 @@ BaseTraceCollector* FileTraceCollector::instance(const char *fileName)
           _fileName = fileName;
           DEVTRACE(" _fileName: " << _fileName);
 
+#if defined(__APPLE__)
+          if (_sem)                            // semaphore of a previous instance
+            dispatch_release(_sem);
+          _sem = dispatch_semaphore_create(0); // to wait until run thread is initialized
+#else
           sem_init(&_sem,0,0); // to wait until run thread is initialized
+#endif
           pthread_t traceThread;
           int bid = 0;
           pthread_create(&traceThread, NULL,
                                    FileTraceCollector::run, &bid);
+#if defined(__APPLE__)
+          dispatch_semaphore_wait(_sem, DISPATCH_TIME_FOREVER);
+#else
           sem_wait(&_sem);
+#endif
           _singleton = myInstance; // _singleton known only when init done
           DEVTRACE("FileTraceCollector:: instance()-end");
         }
@@ -90,7 +100,11 @@ void* FileTraceCollector::run(void* /*bid*/)
   //DEVTRACE("init run");
   _threadId = new pthread_t;
   *_threadId = pthread_self();
+#if defined(__APPLE__)
+  dispatch_semaphore_signal(_sem); // unlock instance
+#else
   sem_post(&_sem); // unlock instance
+#endif
 
   LocalTraceBufferPool* myTraceBuffer = LocalTraceBufferPool::instance();
   LocalTrace_TraceInfo myTrace;

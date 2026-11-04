@@ -42,7 +42,11 @@ pthread_mutex_t BaseTraceCollector::_singletonMutex;
 pthread_mutex_t BaseTraceCollector::_singletonMutex =
   PTHREAD_MUTEX_INITIALIZER;
 #endif
+#if defined(__APPLE__)
+dispatch_semaphore_t BaseTraceCollector::_sem = 0;
+#else
 sem_t BaseTraceCollector::_sem;
+#endif
 int BaseTraceCollector::_threadToClose = 0;
 pthread_t* BaseTraceCollector::_threadId = 0; // used to control single run
 
